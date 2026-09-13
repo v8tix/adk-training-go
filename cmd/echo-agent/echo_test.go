@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"net"
-	"net/url"
 	"os"
 	"slices"
 	"testing"
@@ -27,21 +25,8 @@ var (
 
 func TestMain(m *testing.M) {
 	testConfig = llm.LoadConfig()
-	ollamaReachable = probeOllama(testConfig, 2*time.Second)
+	ollamaReachable = llm.OllamaReachable(testConfig, 2*time.Second)
 	os.Exit(m.Run())
-}
-
-func probeOllama(cfg llm.Config, timeout time.Duration) bool {
-	u, err := url.Parse(cfg.OllamaBaseURL)
-	if err != nil {
-		return false
-	}
-	conn, err := net.DialTimeout("tcp", u.Host, timeout)
-	if err != nil {
-		return false
-	}
-	_ = conn.Close()
-	return true
 }
 
 // runEcho drives the real buildRootAgent (from main.go) directly through

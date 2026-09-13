@@ -15,7 +15,7 @@ func TestBuildModel(t *testing.T) {
 		{
 			name:      "ollama",
 			modelType: ModelTypeOllama,
-			wantName:  "qwen38-standard",
+			wantName:  "qwen3.8:27b",
 		},
 		{
 			// gemini.NewModel validates that an API key is present (non-empty)

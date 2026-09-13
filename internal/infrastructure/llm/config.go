@@ -22,11 +22,18 @@ type Config struct {
 
 // LoadConfig reads Config from the environment, falling back to this
 // course's local-first defaults for anything unset.
+//
+// OllamaModel defaults to a GGUF (Q4_K_M) quantization, not this machine's
+// faster MLX presets — confirmed live (module-4) that MLX quantizations
+// (nvfp4/mxfp8) return "501 structured output is unavailable" for any
+// llmagent.Config.OutputSchema request, while this GGUF quantization of the
+// same model family supports it. Every module shares this one default so
+// none of them need a per-module OLLAMA_MODEL override.
 func LoadConfig() Config {
 	return Config{
 		ModelType:     getEnv("MODEL_TYPE", ModelTypeOllama),
 		OllamaBaseURL: getEnv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-		OllamaModel:   getEnv("OLLAMA_MODEL", "qwen38-standard"),
+		OllamaModel:   getEnv("OLLAMA_MODEL", "qwen3.8:27b"),
 		GeminiModel:   getEnv("GEMINI_MODEL", "gemini-3.5-flash"),
 		GoogleAPIKey:  getEnv("GOOGLE_API_KEY", ""),
 	}
