@@ -6,17 +6,19 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/v8tix/adk-training-go/internal/infrastructure/llm"
 )
 
 // testConfig and ollamaReachable are set once by TestMain, so individual
 // tests don't each reload config or pay the probe-dial cost.
 var (
-	testConfig      config
+	testConfig      llm.Config
 	ollamaReachable bool
 )
 
 func TestMain(m *testing.M) {
-	testConfig = loadConfig()
+	testConfig = llm.LoadConfig()
 	ollamaReachable = probeOllama(testConfig, 2*time.Second)
 	os.Exit(m.Run())
 }
@@ -24,7 +26,7 @@ func TestMain(m *testing.M) {
 // probeOllama dials cfg.OllamaBaseURL's host:port directly, rather than a
 // second hardcoded address, so the probe can never drift from the URL the
 // real call in verifyConnectivity actually uses.
-func probeOllama(cfg config, timeout time.Duration) bool {
+func probeOllama(cfg llm.Config, timeout time.Duration) bool {
 	u, err := url.Parse(cfg.OllamaBaseURL)
 	if err != nil {
 		return false

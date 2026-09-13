@@ -1,4 +1,4 @@
-package main
+package llm
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ func TestBuildModel(t *testing.T) {
 	}{
 		{
 			name:      "ollama",
-			modelType: modelTypeOllama,
+			modelType: ModelTypeOllama,
 			wantName:  "qwen38-standard",
 		},
 		{
@@ -23,7 +23,7 @@ func TestBuildModel(t *testing.T) {
 			// it's valid — a placeholder is enough to prove the factory wires
 			// the client together correctly.
 			name:      "gemini",
-			modelType: modelTypeGemini,
+			modelType: ModelTypeGemini,
 			wantName:  "gemini-3.5-flash",
 		},
 		{
@@ -35,26 +35,26 @@ func TestBuildModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := loadConfig()
+			cfg := LoadConfig()
 			cfg.ModelType = tt.modelType
 			cfg.GoogleAPIKey = "test-placeholder-key"
 
-			m, name, err := buildModel(t.Context(), cfg)
+			m, name, err := BuildModel(t.Context(), cfg)
 
 			if tt.wantErr {
 				if !errors.Is(err, ErrUnknownModelType) {
-					t.Fatalf("buildModel(%q) error = %v, want errors.Is(err, ErrUnknownModelType)", tt.modelType, err)
+					t.Fatalf("BuildModel(%q) error = %v, want errors.Is(err, ErrUnknownModelType)", tt.modelType, err)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("buildModel(%q) unexpected error: %v", tt.modelType, err)
+				t.Fatalf("BuildModel(%q) unexpected error: %v", tt.modelType, err)
 			}
 			if m == nil {
-				t.Fatalf("buildModel(%q) returned a nil model.LLM", tt.modelType)
+				t.Fatalf("BuildModel(%q) returned a nil model.LLM", tt.modelType)
 			}
 			if name != tt.wantName {
-				t.Fatalf("buildModel(%q) name = %q, want %q", tt.modelType, name, tt.wantName)
+				t.Fatalf("BuildModel(%q) name = %q, want %q", tt.modelType, name, tt.wantName)
 			}
 		})
 	}
@@ -63,7 +63,7 @@ func TestBuildModel(t *testing.T) {
 func TestKnownModelTypes(t *testing.T) {
 	got := knownModelTypes()
 
-	want := []string{modelTypeGemini, modelTypeOllama} // sorted
+	want := []string{ModelTypeGemini, ModelTypeOllama} // sorted
 	if len(got) != len(want) {
 		t.Fatalf("knownModelTypes() = %v, want %v", got, want)
 	}

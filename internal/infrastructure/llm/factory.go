@@ -1,4 +1,4 @@
-package main
+package llm
 
 import (
 	"context"
@@ -13,16 +13,16 @@ import (
 	"google.golang.org/genai"
 )
 
-// Model type strings selected via config.ModelType (env MODEL_TYPE). New
+// Model type strings selected via Config.ModelType (env MODEL_TYPE). New
 // backends register their own factory in modelFactories instead of adding a
-// branch to buildModel.
+// branch to BuildModel.
 const (
-	modelTypeOllama = "ollama"
-	modelTypeGemini = "gemini"
+	ModelTypeOllama = "ollama"
+	ModelTypeGemini = "gemini"
 )
 
 var (
-	// ErrUnknownModelType indicates config.ModelType doesn't match any
+	// ErrUnknownModelType indicates Config.ModelType doesn't match any
 	// factory registered in modelFactories.
 	ErrUnknownModelType = errors.New("unknown model type")
 	// ErrBuildingModel indicates a registered factory failed to construct
@@ -32,15 +32,15 @@ var (
 
 // modelFactory builds a model.LLM for one model type, and returns a
 // human-readable name for it.
-type modelFactory func(ctx context.Context, cfg config) (model.LLM, string, error)
+type modelFactory func(ctx context.Context, cfg Config) (model.LLM, string, error)
 
 var modelFactories = map[string]modelFactory{
-	modelTypeOllama: newOllamaModel,
-	modelTypeGemini: newGeminiModel,
+	ModelTypeOllama: newOllamaModel,
+	ModelTypeGemini: newGeminiModel,
 }
 
-// buildModel dispatches to the factory registered for cfg.ModelType.
-func buildModel(ctx context.Context, cfg config) (model.LLM, string, error) {
+// BuildModel dispatches to the factory registered for cfg.ModelType.
+func BuildModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
 	factory, ok := modelFactories[cfg.ModelType]
 	if !ok {
 		return nil, "", fmt.Errorf("%w: %q (want one of: %v)", ErrUnknownModelType, cfg.ModelType, knownModelTypes())
@@ -59,7 +59,7 @@ func knownModelTypes() []string {
 
 // newOllamaModel builds the local-first default backend, per this project's
 // local-first constraint.
-func newOllamaModel(ctx context.Context, cfg config) (model.LLM, string, error) {
+func newOllamaModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
 	m, err := openaimodel.NewModel(ctx, cfg.OllamaModel, &openaimodel.ClientConfig{
 		APIKey:  "ollama",
 		BaseURL: cfg.OllamaBaseURL,
@@ -69,7 +69,7 @@ func newOllamaModel(ctx context.Context, cfg config) (model.LLM, string, error) 
 
 // newGeminiModel builds the cloud path, for checking Google Cloud/AI Studio
 // credentials specifically (MODEL_TYPE=gemini).
-func newGeminiModel(ctx context.Context, cfg config) (model.LLM, string, error) {
+func newGeminiModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
 	m, err := gemini.NewModel(ctx, cfg.GeminiModel, &genai.ClientConfig{
 		APIKey: cfg.GoogleAPIKey,
 	})

@@ -5,14 +5,18 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"runtime"
 	"runtime/debug"
 
 	"github.com/joho/godotenv"
 
+	"github.com/v8tix/adk-training-go/internal/infrastructure/llm"
+	"github.com/v8tix/adk-training-go/internal/infrastructure/prompts"
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/agent/llmagent"
 	"google.golang.org/adk/v2/model"
@@ -27,7 +31,28 @@ const (
 	// own bare minimum (1.25) — mirrors the Python course checking its chosen
 	// Python floor (3.10) separately from the ADK package's own requirement.
 	minGoVersion = "go1.27"
+
+	// promptNamespace identifies this program's entries in the shared
+	// prompts cache (internal/infrastructure/prompts).
+	promptNamespace = "verify-setup"
 )
+
+//go:embed prompts/*.md
+var promptFS embed.FS
+
+// init registers this program's prompts into the shared cache before
+// anything — including tests, which never call main() — needs to read them
+// via prompts.Get. fs.Sub is required: see internal/infrastructure/prompts's
+// doc comment for why.
+func init() {
+	promptFiles, err := fs.Sub(promptFS, "prompts")
+	if err != nil {
+		panic(fmt.Sprintf("resolving prompts directory: %v", err))
+	}
+	if err := prompts.Register(promptNamespace, promptFiles, ".md"); err != nil {
+		panic(fmt.Sprintf("registering prompts: %v", err))
+	}
+}
 
 var (
 	// ErrBuildingAgent indicates llmagent.New failed.
@@ -51,7 +76,7 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		fmt.Printf("ℹ️  No .env file loaded (%v) — continuing with the current environment.\n", err)
 	}
-	cfg := loadConfig()
+	cfg := llm.LoadConfig()
 
 	fmt.Println("🔍 Testing ADK 2.0 Go Environment...")
 
@@ -103,17 +128,23 @@ func checkGoVersion() bool {
 	return true
 }
 
-// verifyConnectivity builds whichever model buildModel's factory produces for
-// cfg.ModelType, then runs one prompt against it and prints the result.
-func verifyConnectivity(ctx context.Context, cfg config) error {
-	llmModel, modelName, err := buildModel(ctx, cfg)
+// verifyConnectivity builds whichever model llm.BuildModel's factory
+// produces for cfg.ModelType, then runs one prompt against it and prints the
+// result.
+func verifyConnectivity(ctx context.Context, cfg llm.Config) error {
+	llmModel, modelName, err := llm.BuildModel(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("🚀 Connecting to %s...\n", modelName)
 
-	answer, err := runPrompt(ctx, llmModel, "Reply with exactly: ADK 2.0 is Ready!", "Hello!")
+	instruction, err := prompts.Get(promptNamespace + "/verify_instruction")
+	if err != nil {
+		return err
+	}
+
+	answer, err := runPrompt(ctx, llmModel, instruction, "Hello!")
 	if err != nil {
 		return err
 	}

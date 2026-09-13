@@ -51,7 +51,7 @@ By default, `cmd/verify-setup` calls a local Ollama server — no `.env` file ne
 
 ### Step 3: Read `cmd/verify-setup`
 
-Open `cmd/verify-setup/main.go`, `checks.go`, `config.go`, and `model_factory.go`. Find:
+Open `cmd/verify-setup/main.go` and `checks.go`, plus `internal/infrastructure/llm/config.go` and `factory.go` (moved there in module-3 so a second program could reuse them — see that module's docs for why). Find:
 
 1. The function that checks the resolved `google.golang.org/adk/v2` version — how does it read that without importing an `internal` package it isn't allowed to?
 2. The function that checks the Go version.
@@ -84,4 +84,4 @@ If you see a connection error to `localhost:11434`, the local Ollama server isn'
 
 ### Looking for the solution?
 
-Hint: read `cmd/verify-setup/model_factory.go`'s `buildModel` function and the `modelFactories` map — that's what dispatches between Ollama and Gemini, based on the `MODEL_TYPE` environment variable.
+Hint: read `internal/infrastructure/llm/factory.go`'s `BuildModel` function and the `modelFactories` map — that's what dispatches between Ollama and Gemini, based on the `MODEL_TYPE` environment variable.
