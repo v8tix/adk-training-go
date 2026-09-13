@@ -1,0 +1,32 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+_testmain.go
+
+*.exe
+*.prof
+
+#My
+vendor
+.idea
+.vscode
+glide.lock
+__debug_bin*
+coverage.out
+local-env.sh
+.DS_Store
+*.run.xml
+.env*
+.cache
+/.claude/settings.local.json
+
+# Local service logs
+logs/
+
+# CocoIndex Code (ccc)
+/.cocoindex_code/
+
+# Ticket-workflow artifacts (specs, plans, phase docs)
+temp/
