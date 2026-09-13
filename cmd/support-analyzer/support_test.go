@@ -18,15 +18,15 @@ import (
 
 // structuredOutputUnavailableMsg is the literal text Ollama returns (via its
 // OpenAI-compatible endpoint) when the configured model's quantization
-// doesn't support JSON-schema-constrained decoding — confirmed live for this
-// machine's MLX presets (nvfp4/mxfp8). The repo's default OLLAMA_MODEL
-// (internal/infrastructure/llm.LoadConfig) is a GGUF quantization that
-// supports it, so this only fires if OLLAMA_MODEL is overridden back to an
-// MLX preset — a defensive skip, not the expected path. There's no
-// typed/sentinel error for this available through the SDK (the OpenAI
-// client's own typed API error lives in an internal package), so this is a
-// best-effort substring match on the server's own message, never asserted
-// on as a real API contract.
+// doesn't support JSON-schema-constrained decoding — confirmed live for some
+// quantizations of this course's model family. The repo's default
+// OLLAMA_MODEL (internal/infrastructure/llm.LoadConfig) is a GGUF
+// quantization that supports it, so this only fires if OLLAMA_MODEL is
+// overridden to one that doesn't — a defensive skip, not the expected path.
+// There's no typed/sentinel error for this available through the SDK (the
+// OpenAI client's own typed API error lives in an internal package), so this
+// is a best-effort substring match on the server's own message, never
+// asserted on as a real API contract.
 const structuredOutputUnavailableMsg = "structured output is unavailable"
 
 // testConfig and ollamaReachable are set once by TestMain, matching
@@ -78,17 +78,51 @@ func analyzeTicket(ctx context.Context, llmModel model.LLM, ticket string) (stri
 	return "", nil
 }
 
-// TestSupportAnalyzer_ReturnsStructuredAnalysis exercises the lab's own
-// requirement: the agent must return a JSON object with category, sentiment,
-// and summary, saved into session state under "last_ticket_analysis" — not
-// pinning exact wording (an LLM's phrasing isn't reproducible), just
-// structural validity and that sentiment tracks the ticket's tone.
-func TestSupportAnalyzer_ReturnsStructuredAnalysis(t *testing.T) {
+// TestSupportAnalyzer_ReturnsStructuredAnalysis_Ollama exercises the lab's
+// own requirement against the local Ollama backend: the agent must return a
+// JSON object with category, sentiment, and summary, saved into session
+// state under "last_ticket_analysis". It skips when TEST_BACKEND excludes
+// Ollama (see llm.SelectedTestBackend), or when Ollama isn't reachable, so
+// CI or another machine doesn't break the suite.
+func TestSupportAnalyzer_ReturnsStructuredAnalysis_Ollama(t *testing.T) {
+	if !llm.SelectedTestBackend().IncludesOllama() {
+		t.Skip("skipping: TEST_BACKEND excludes ollama")
+	}
 	if !ollamaReachable {
 		t.Skip("skipping: local Ollama server (" + testConfig.OllamaBaseURL + ") is not reachable")
 	}
 
-	llmModel, _, err := llm.BuildModel(t.Context(), testConfig)
+	cfg := testConfig
+	cfg.ModelType = llm.ModelTypeOllama
+	assertSupportAnalyzerReturnsStructuredAnalysis(t, cfg)
+}
+
+// TestSupportAnalyzer_ReturnsStructuredAnalysis_Gemini is the same behavior,
+// against the real Gemini backend. It skips when TEST_BACKEND excludes
+// Gemini, or when GOOGLE_AI_STUDIO_API_KEY isn't set, since a Gemini
+// credential isn't required for this local-first course.
+func TestSupportAnalyzer_ReturnsStructuredAnalysis_Gemini(t *testing.T) {
+	if !llm.SelectedTestBackend().IncludesGemini() {
+		t.Skip("skipping: TEST_BACKEND excludes gemini")
+	}
+	if testConfig.GoogleAPIKey == "" {
+		t.Skip("skipping: GOOGLE_AI_STUDIO_API_KEY is not set")
+	}
+
+	cfg := testConfig
+	cfg.ModelType = llm.ModelTypeGemini
+	assertSupportAnalyzerReturnsStructuredAnalysis(t, cfg)
+}
+
+// assertSupportAnalyzerReturnsStructuredAnalysis builds the model from cfg
+// and runs the lab's structured-output requirement against it — shared by
+// both the Ollama and Gemini variants, not pinning exact wording (an LLM's
+// phrasing isn't reproducible), just structural validity and that sentiment
+// tracks the ticket's tone.
+func assertSupportAnalyzerReturnsStructuredAnalysis(t *testing.T, cfg llm.Config) {
+	t.Helper()
+
+	llmModel, _, err := llm.BuildModel(t.Context(), cfg)
 	if err != nil {
 		t.Fatalf("BuildModel() error = %v", err)
 	}
@@ -113,7 +147,7 @@ func TestSupportAnalyzer_ReturnsStructuredAnalysis(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			raw, err := analyzeTicket(t.Context(), llmModel, tt.ticket)
 			if err != nil && strings.Contains(err.Error(), structuredOutputUnavailableMsg) {
-				t.Skipf("skipping: %s does not support structured output (%v) — unset OLLAMA_MODEL or point it at a GGUF quantization like the repo default, qwen3.8:27b (see docs/module-4/README.md)", testConfig.OllamaModel, err)
+				t.Skipf("skipping: %s does not support structured output (%v) — unset OLLAMA_MODEL or point it at a GGUF quantization like the repo default, qwen3.8:27b (see docs/module-4/README.md)", cfg.OllamaModel, err)
 			}
 			if err != nil {
 				t.Fatalf("analyzeTicket(%q) error = %v", tt.ticket, err)

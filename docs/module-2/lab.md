@@ -45,7 +45,7 @@ By default, `cmd/verify-setup` calls a local Ollama server — no `.env` file ne
 1. Copy `.env.example` to `.env` (already covered by `.gitignore` — never commit the real one).
 2. Set your key and switch paths:
    ```
-   GOOGLE_API_KEY="YOUR_API_KEY"
+   GOOGLE_AI_STUDIO_API_KEY="YOUR_API_KEY"
    MODEL_TYPE=gemini
    ```
 

@@ -37,12 +37,12 @@ Unlike the Python course, this repo defaults to a **local** model — no cloud c
 
 #### Option A: Local Ollama (Default, Recommended for This Course)
 
-`cmd/verify-setup` and later modules call a local Ollama server by default: `http://localhost:11434` (OpenAI-compatible `/v1` endpoint), model `qwen3.8:27b` — a GGUF quantization, not this machine's faster MLX presets, chosen because it's the one confirmed (module-4) to support JSON-schema-constrained structured output as well as plain text. No API key or `.env` entry is required for this path — Ollama doesn't check the key value. All of this is configurable: copy `.env.example` to `.env` and override `OLLAMA_BASE_URL` / `OLLAMA_MODEL` if your Ollama server lives elsewhere.
+`cmd/verify-setup` and later modules call a local Ollama server by default: `http://localhost:11434` (OpenAI-compatible `/v1` endpoint), model `qwen3.8:27b` — a GGUF quantization, chosen because it's the one confirmed (module-4) to support JSON-schema-constrained structured output as well as plain text. No API key or `.env` entry is required for this path — Ollama doesn't check the key value. All of this is configurable: copy `.env.example` to `.env` and override `OLLAMA_BASE_URL` / `OLLAMA_MODEL` if your Ollama server lives elsewhere.
 
 #### Option B: Google AI Studio API Key
 
 1. Get an API key from Google AI Studio: `https://aistudio.google.com/app/apikey`.
-2. Copy `.env.example` to `.env` and set `GOOGLE_API_KEY="YOUR_API_KEY"` and `MODEL_TYPE=gemini` — this switches `cmd/verify-setup` (and later modules) to this path.
+2. Copy `.env.example` to `.env` and set `GOOGLE_AI_STUDIO_API_KEY="YOUR_API_KEY"` and `MODEL_TYPE=gemini` — this switches `cmd/verify-setup` (and later modules) to this path.
 
 #### Option C: Google Cloud Authentication (Enterprise)
 

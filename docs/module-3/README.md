@@ -47,13 +47,13 @@ Defining the agent is only the first step. This repo's `cmd/echo-agent` wraps `r
 
 ```go
 config := &launcher.Config{AgentLoader: agent.NewSingleLoader(rootAgent)}
-l := universal.NewLauncher(console.NewLauncher(), web.NewLauncher(webui.NewLauncher()))
+l := universal.NewLauncher(console.NewLauncher(), web.NewLauncher(webui.NewLauncher(), api.NewLauncher()))
 l.Execute(ctx, config, os.Args[1:])
 ```
 
 This gives two run modes for free, confirmed by running both this session:
 
-* **`go run ./cmd/echo-agent web --port 8080 webui`** — starts a local Dev UI at `http://localhost:8080/ui/` (note the flag position: `web`'s own flags go directly after `web`, then `webui` names the sub-launcher to activate). This is the Go equivalent of `uv run adk web`.
+* **`go run ./cmd/echo-agent web --port 8080 webui api`** — starts a local Dev UI at `http://localhost:8080/ui/` (note the flag position: `web`'s own flags go directly after `web`, then the sub-launcher keywords). **Both `webui` and `api` are required together** — confirmed live in module-5: the Dev UI's frontend calls the REST API (`api`) for everything beyond serving its own static page, so `webui` alone starts a UI that 404s the moment you try to actually use it. This is the Go equivalent of `uv run adk web`.
 * **`go run ./cmd/echo-agent console`** — a no-browser CLI chat mode. No direct parallel in the Python course; a bonus this launcher gives you for free.
 
 **Caveat, confirmed by actually running it:** both the `console` and `web` UIs render the model's raw response, including its chain-of-thought, when using this course's default thinking-capable model — they don't apply the `Thought`-filtering this repo's own code does elsewhere (`firstAnswerText`). If you see visible reasoning text before the echoed answer in the UI, that's the SDK's own renderer, not a bug in this module's code.

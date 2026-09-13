@@ -1,7 +1,10 @@
 // Command echo-agent runs a strict "echo only" agent: it repeats the user's
 // input verbatim and never answers questions. Run with `web --port 8080
-// webui` for the Dev UI (note: webui must be named after web's own flags) or
-// `console` for a no-browser CLI chat.
+// webui api` for the Dev UI (note: both sub-launcher keywords must come
+// after web's own flags, and `api` is required alongside `webui` — the Dev
+// UI's frontend calls into the REST API for everything beyond serving its
+// static page, so `webui` alone starts a UI that can't actually interact
+// with an agent) or `console` for a no-browser CLI chat.
 package main
 
 import (
@@ -22,6 +25,7 @@ import (
 	"google.golang.org/adk/v2/cmd/launcher/console"
 	"google.golang.org/adk/v2/cmd/launcher/universal"
 	"google.golang.org/adk/v2/cmd/launcher/web"
+	"google.golang.org/adk/v2/cmd/launcher/web/api"
 	"google.golang.org/adk/v2/cmd/launcher/web/webui"
 	"google.golang.org/adk/v2/model"
 )
@@ -90,10 +94,13 @@ func main() {
 
 	config := &launcher.Config{AgentLoader: agent.NewSingleLoader(rootAgent)}
 
-	// Only console (CLI chat) and web+webui (Dev UI) — not the full bundle's
-	// A2A/pub-sub/Eventarc/REST-API sub-launchers, which this echo agent has
-	// no use for and which pull in a much larger dependency graph.
-	l := universal.NewLauncher(console.NewLauncher(), web.NewLauncher(webui.NewLauncher()))
+	// console (CLI chat) and web+webui+api (Dev UI) — not the full bundle's
+	// A2A/pub-sub/Eventarc sub-launchers, which this echo agent has no use
+	// for and which pull in a much larger dependency graph. api is required
+	// alongside webui: the Dev UI's frontend calls the REST API for
+	// everything beyond its static page (confirmed live, module-5 — webui
+	// alone 404s on the API calls the UI itself makes).
+	l := universal.NewLauncher(console.NewLauncher(), web.NewLauncher(webui.NewLauncher(), api.NewLauncher()))
 	if err := l.Execute(ctx, config, os.Args[1:]); err != nil {
 		log.Fatalf("run failed: %v\n\n%s", err, l.CommandLineSyntax())
 	}

@@ -60,6 +60,58 @@ func TestBuildModel(t *testing.T) {
 	}
 }
 
+func TestOllamaClientConfig_WiresAPIKeyAndBaseURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		baseURL string
+	}{
+		{name: "default base URL", baseURL: "http://localhost:11434/v1"},
+		{name: "overridden base URL", baseURL: "http://example.invalid:9999/v1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := LoadConfig()
+			cfg.OllamaBaseURL = tt.baseURL
+
+			got := ollamaClientConfig(cfg)
+
+			if got.APIKey != "ollama" {
+				t.Errorf("APIKey = %q, want %q", got.APIKey, "ollama")
+			}
+			if got.BaseURL != tt.baseURL {
+				t.Errorf("BaseURL = %q, want %q", got.BaseURL, tt.baseURL)
+			}
+			// option.RequestOption values are opaque closures with no public
+			// way to inspect what they set (openai-go's RequestConfig lives in
+			// an internal/ package) — asserting the count is the strongest
+			// check available from outside that module. productionOllamaRetryOptions'
+			// own values are covered directly by TestProductionOllamaRetryOptions.
+			if len(got.Options) != len(productionOllamaRetryOptions()) {
+				t.Errorf("len(Options) = %d, want %d (WithMaxRetries + WithMaxRetryDelay)", len(got.Options), len(productionOllamaRetryOptions()))
+			}
+		})
+	}
+}
+
+func TestGeminiClientConfig_UsesProductionRetryOptions(t *testing.T) {
+	cfg := LoadConfig()
+	cfg.GoogleAPIKey = "test-placeholder-key"
+
+	got := geminiClientConfig(cfg).HTTPOptions.RetryOptions
+	want := productionRetryOptions()
+
+	if got.MaxDelay == nil || want.MaxDelay == nil || *got.MaxDelay != *want.MaxDelay {
+		t.Errorf("MaxDelay = %v, want %v", got.MaxDelay, want.MaxDelay)
+	}
+	if got.ExpBase == nil || want.ExpBase == nil || *got.ExpBase != *want.ExpBase {
+		t.Errorf("ExpBase = %v, want %v", got.ExpBase, want.ExpBase)
+	}
+	if got.Jitter == nil || want.Jitter == nil || *got.Jitter != *want.Jitter {
+		t.Errorf("Jitter = %v, want %v", got.Jitter, want.Jitter)
+	}
+}
+
 func TestKnownModelTypes(t *testing.T) {
 	got := knownModelTypes()
 

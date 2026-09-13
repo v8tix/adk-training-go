@@ -60,18 +60,38 @@ func knownModelTypes() []string {
 // newOllamaModel builds the local-first default backend, per this project's
 // local-first constraint.
 func newOllamaModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
-	m, err := openaimodel.NewModel(ctx, cfg.OllamaModel, &openaimodel.ClientConfig{
+	m, err := openaimodel.NewModel(ctx, cfg.OllamaModel, ollamaClientConfig(cfg))
+	return m, cfg.OllamaModel, err
+}
+
+// ollamaClientConfig builds the client configuration for the Ollama backend,
+// including the production retry policy — split out from newOllamaModel so
+// it's testable without a live network call, mirroring geminiClientConfig.
+// Ollama ignores the API key value but openaimodel requires a non-empty
+// string.
+func ollamaClientConfig(cfg Config) *openaimodel.ClientConfig {
+	return &openaimodel.ClientConfig{
 		APIKey:  "ollama",
 		BaseURL: cfg.OllamaBaseURL,
-	})
-	return m, cfg.OllamaModel, err
+		Options: productionOllamaRetryOptions(),
+	}
 }
 
 // newGeminiModel builds the cloud path, for checking Google Cloud/AI Studio
 // credentials specifically (MODEL_TYPE=gemini).
 func newGeminiModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
-	m, err := gemini.NewModel(ctx, cfg.GeminiModel, &genai.ClientConfig{
-		APIKey: cfg.GoogleAPIKey,
-	})
+	m, err := gemini.NewModel(ctx, cfg.GeminiModel, geminiClientConfig(cfg))
 	return m, cfg.GeminiModel, err
+}
+
+// geminiClientConfig builds the client configuration for the Gemini backend,
+// including the production retry policy — split out from newGeminiModel so
+// it's testable without a live network call.
+func geminiClientConfig(cfg Config) *genai.ClientConfig {
+	return &genai.ClientConfig{
+		APIKey: cfg.GoogleAPIKey,
+		HTTPOptions: genai.HTTPOptions{
+			RetryOptions: productionRetryOptions(),
+		},
+	}
 }
