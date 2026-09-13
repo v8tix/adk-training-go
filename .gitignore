@@ -19,6 +19,7 @@ local-env.sh
 .DS_Store
 *.run.xml
 .env*
+!.env.example
 .cache
 /.claude/settings.local.json
 
@@ -30,3 +31,7 @@ logs/
 
 # Ticket-workflow artifacts (specs, plans, phase docs)
 temp/
+
+# `go build ./...` writes a binary here when there's exactly one main
+# package in the module; harmless to ignore even once that's no longer true.
+/verify-setup
