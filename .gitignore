@@ -32,6 +32,11 @@ logs/
 # Ticket-workflow artifacts (specs, plans, phase docs)
 temp/
 
-# `go build ./...` writes a binary here when there's exactly one main
-# package in the module; harmless to ignore even once that's no longer true.
+# `go build ./cmd/<name>/...` (run directly, not as part of `go build ./...`)
+# writes a binary named after the package into the repo root — easy to do by
+# accident while troubleshooting a single package. One entry per cmd/
+# program; add a new line here whenever a new cmd/ program is added.
 /verify-setup
+/echo-agent
+/support-analyzer
+/support-analyzer-runner

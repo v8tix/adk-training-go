@@ -1,4 +1,4 @@
-package main
+package supportanalyzer
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/v8tix/adk-training-go/internal/infrastructure/llm"
-	"github.com/v8tix/adk-training-go/internal/infrastructure/prompts"
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/model"
 	"google.golang.org/adk/v2/runner"
@@ -43,17 +42,12 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// analyzeTicket drives the real buildRootAgent (from main.go) directly
-// through runner, bypassing the launcher's console/web rendering. It
-// returns the raw JSON string the SDK wrote to
-// event.Actions.StateDelta[outputKey] on the final response event.
+// analyzeTicket drives the real BuildRootAgent directly through runner,
+// bypassing the launcher's console/web rendering. It returns the raw JSON
+// string the SDK wrote to event.Actions.StateDelta[OutputKey] on the final
+// response event.
 func analyzeTicket(ctx context.Context, llmModel model.LLM, ticket string) (string, error) {
-	instruction, err := prompts.Get(promptNamespace + "/support_analyzer_instruction")
-	if err != nil {
-		return "", err
-	}
-
-	analyzerAgent, err := buildRootAgent(llmModel, instruction)
+	analyzerAgent, err := BuildRootAgent(llmModel)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +65,7 @@ func analyzeTicket(ctx context.Context, llmModel model.LLM, ticket string) (stri
 		if !event.IsFinalResponse() {
 			continue
 		}
-		if s, ok := event.Actions.StateDelta[outputKey].(string); ok {
+		if s, ok := event.Actions.StateDelta[OutputKey].(string); ok {
 			return s, nil
 		}
 	}
@@ -153,7 +147,7 @@ func assertSupportAnalyzerReturnsStructuredAnalysis(t *testing.T, cfg llm.Config
 				t.Fatalf("analyzeTicket(%q) error = %v", tt.ticket, err)
 			}
 			if raw == "" {
-				t.Fatalf("analyzeTicket(%q) produced no state delta for %q", tt.ticket, outputKey)
+				t.Fatalf("analyzeTicket(%q) produced no state delta for %q", tt.ticket, OutputKey)
 			}
 
 			var got SupportAnalysis
