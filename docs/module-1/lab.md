@@ -12,7 +12,7 @@ The official ADK-for-Go documentation is the most important resource you will us
 2. **Explore the "Get Started" Section:** Read through `Installation` and the Go-specific quickstart at `https://adk.dev/get-started/go/`. Note the `go get google.golang.org/adk/v2` install command and the Go 1.25+ requirement.
 3. **Browse the Graph and Workflow Sections:** Look at `https://adk.dev/graphs/` and `https://adk.dev/workflows/` — this is the heart of ADK 2.0, showing how you compose nodes and edges into a workflow.
 
-**Key Takeaway:** The documentation is your best friend. Ensure you are looking at the **Go** pages specifically — some concepts (like the `Runner`) work differently than in the Python or Java versions.
+**Key Takeaway:** The documentation is your best friend. Ensure you are looking at the **Go** pages specifically — Go has its own `Runner`-equivalent API (package `runner`), separate from the higher-level `cmd/launcher` app shell the quickstart samples use.
 
 ## Step 2: Discover the Official Code Repository
 
@@ -24,7 +24,7 @@ The Go SDK is open source, with its own repository on GitHub. This repository co
 4. **Examine the Code:** Open `examples/workflow/basic/main.go` and read through it. Try to connect what you see to the concepts you skimmed in Step 1 (`workflow.NewFunctionNode`, `workflow.Chain`, `workflowagent.New`).
 
 ***Scavenger Hunt!***
-> Find the `examples/workflow/basic` sample and identify what actually runs the agent programmatically. Hint: it isn't a hand-built `Runner` like the Python course uses — look at the last few lines of `main()`.
+> Find the `examples/workflow/basic` sample and identify what actually runs the agent programmatically. Hint: this particular sample doesn't call the `runner` package directly — it goes through a higher-level app shell instead. Look at the last few lines of `main()`.
 
 **Key Takeaway:** The official examples are the best place to find working code that you can learn from and adapt for your own projects.
 
@@ -53,4 +53,4 @@ In the next module, you will use this knowledge to set up your own local Go deve
 
 ### Looking for the solution?
 
-Hint: look at `examples/workflow/basic/main.go` in `github.com/google/adk-go`, specifically the last few lines of `main()` — that's the launcher call you're looking for.
+Hint: look at `examples/workflow/basic/main.go` in `github.com/google/adk-go`, specifically the last few lines of `main()` — that's the `cmd/launcher` call you're looking for. (For running an agent directly from your own code instead of via a launcher-built app, see package `runner` — `runner.NewInMemory` + `Run`.)
