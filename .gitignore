@@ -40,3 +40,5 @@ temp/
 /echo-agent
 /support-analyzer
 /support-analyzer-runner
+/visual-catalog
+/visual-catalog-local
