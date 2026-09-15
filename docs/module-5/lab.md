@@ -6,13 +6,15 @@ Run and interact with the **Support Analyzer** agent (from modules 4-4.5) using 
 
 ## Lab Tasks
 
-### 1. `web --port 8080 webui api` (Dev UI)
+### 1. `web --port 9091 webui api` (Dev UI)
+
+> **Port choice:** this lab uses `9091` instead of the ADK launcher's default of `8080` — `8080` is commonly already occupied by other local dev tools (see module-3's lab for a confirmed real collision on this session's own machine, from Docker Desktop's own proxy). If `9091` is also taken on your machine, check with `lsof -i :9091` and pick any other free port instead, adjusting every URL in this lab to match — including in Task 3 below, which reuses this same port.
 
 ```bash
-go run ./cmd/support-analyzer web --port 8080 webui api
+go run ./cmd/support-analyzer web --port 9091 webui api
 ```
 
-**Both `webui` and `api` are required** — the Dev UI's frontend calls the REST API for everything beyond serving its static page. Open `http://localhost:8080/ui/`, interact with the agent, and try the Trace view if the frontend exposes one (the backend routes for it are real — see the README — this repo doesn't claim the frontend UI was independently verified).
+**Both `webui` and `api` are required** — the Dev UI's frontend calls the REST API for everything beyond serving its static page. Open `http://localhost:9091/ui/`, interact with the agent, and try the Trace view if the frontend exposes one (the backend routes for it are real — see the README — this repo doesn't claim the frontend UI was independently verified).
 
 ### 2. `console` (Headless CLI)
 
@@ -22,12 +24,12 @@ go run ./cmd/support-analyzer console
 
 Interact with the agent directly in your terminal — no browser needed.
 
-### 3. `web --port 8080 api` (REST API Server)
+### 3. `web --port 9091 api` (REST API Server)
 
 Stop the previous mode, then:
 
 ```bash
-go run ./cmd/support-analyzer web --port 8080 api
+go run ./cmd/support-analyzer web --port 9091 api
 ```
 
 Open a **separate terminal** to act as the client.
@@ -35,7 +37,7 @@ Open a **separate terminal** to act as the client.
 **Step A (The Failure):** try `run_sse` without creating a session first:
 
 ```bash
-curl -X POST http://localhost:8080/api/run_sse \
+curl -X POST http://localhost:9091/api/run_sse \
      -H "Content-Type: application/json" \
      -d '{
            "appName": "support_analyzer_agent",
@@ -54,7 +56,7 @@ Real, confirmed response: `404`, `failed to find the session: failed to get sess
 **Step B (The Fix):** create the session explicitly:
 
 ```bash
-curl -X POST http://localhost:8080/api/apps/support_analyzer_agent/users/test_user/sessions/test_session
+curl -X POST http://localhost:9091/api/apps/support_analyzer_agent/users/test_user/sessions/test_session
 ```
 
 Real, confirmed response: `200`, `{"id":"test_session","appName":"support_analyzer_agent","userId":"test_user","lastUpdateTime":...,"events":[],"state":{}}`.
@@ -62,7 +64,7 @@ Real, confirmed response: `200`, `{"id":"test_session","appName":"support_analyz
 **Step C (Success):** send the message again, targeting the session you just created:
 
 ```bash
-curl -X POST http://localhost:8080/api/run_sse \
+curl -X POST http://localhost:9091/api/run_sse \
      -H "Content-Type: application/json" \
      -d '{
            "appName": "support_analyzer_agent",

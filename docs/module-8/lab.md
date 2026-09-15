@@ -39,13 +39,15 @@ A real, current, grounded answer — not something a model's own training data c
 
 ### 4. Run it — Dev UI mode, and inspect the Trace view
 
+> **Port choice:** this lab uses `9091` instead of the ADK launcher's default of `8080` — `8080` is commonly already occupied by other local dev tools (see module-3's lab for a confirmed real collision on this session's own machine, from Docker Desktop's own proxy). If `9091` is also taken on your machine, check with `lsof -i :9091` and pick any other free port instead, adjusting the URL below to match.
+
 ```bash
-go run ./cmd/researcher web --port 8080 webui api
+go run ./cmd/researcher web --port 9091 webui api
 ```
 
-Open `http://localhost:8080/`, ask the same weather question, then open the **Trace** view for that turn. You should see the `google_search` function call and its result as a distinct step before the model's final answer — Python's own verification method, still available here.
+Open `http://localhost:9091/`, ask the same weather question, then open the **Trace** view for that turn. You should see the `google_search` function call and its result as a distinct step before the model's final answer — Python's own verification method, still available here.
 
-Confirmed live in this repo: `curl http://localhost:8080/api/list-apps` returns `["researcher_agent"]`, and the Dev UI itself (`http://localhost:8080/`, redirecting to `/ui/`) returns `200`.
+Confirmed live in this repo: `curl http://localhost:9091/api/list-apps` returns `["researcher_agent"]`, and the Dev UI itself (`http://localhost:9091/`, redirecting to `/ui/`) returns `200`.
 
 ### 5. See the local-backend limitation, on purpose
 

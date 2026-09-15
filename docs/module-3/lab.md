@@ -23,11 +23,14 @@ This exact table is what `cmd/echo-agent/echo_test.go` asserts automatically.
 3. **Instruction Strategy:** If you change the instruction, keep it at least this explicit — a softer instruction risks the model answering instead of echoing.
 4. No `.env` configuration is required for the default (local Ollama) path. If you want to test against Gemini instead, copy `.env.example` to `.env` and set `MODEL_TYPE=gemini` plus `GOOGLE_AI_STUDIO_API_KEY`.
 5. Run the agent:
+
+   > **Port choice:** this lab uses `9091` instead of the ADK launcher's default of `8080` — `8080` is commonly already occupied by other local dev tools (confirmed on this session's own machine: Docker Desktop's own proxy was already listening on it). If `9091` is also taken on your machine, check with `lsof -i :9091` (macOS/Linux) and pick any other free port instead, adjusting every URL below to match. If you run the command below and the port you chose is taken, you'll see `bind: address already in use` buried under a large flag-usage dump — that's the ADK Go SDK's own launcher printing its full CLI help on any runtime error, not something specific to this repo; the real error is that one line.
+
    ```bash
-   go run ./cmd/echo-agent web --port 8080 webui api
+   go run ./cmd/echo-agent web --port 9091 webui api
    ```
    Note the flag position: `web`'s own flags (like `--port`) go directly after `web`, then the sub-launcher keywords. **Both `webui` and `api` are required** — the Dev UI's frontend calls the REST API for everything beyond its static page, so `webui` alone starts a UI that can't actually interact with the agent (confirmed live: `/api/list-apps` 404s without `api` registered too).
-6. Open `http://localhost:8080/ui/` and interact with the agent to verify it passes the Expected Behavior table above.
+6. Open `http://localhost:9091/ui/` and interact with the agent to verify it passes the Expected Behavior table above.
 
    > **Known quirk, not a bug:** the Dev UI shows the model's raw response, including its chain-of-thought, before or alongside the echoed answer — the launcher's own UI doesn't filter reasoning traces the way this repo's own code does elsewhere. If you see visible reasoning text, that's expected with this course's default model.
 
