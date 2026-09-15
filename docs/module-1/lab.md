@@ -20,7 +20,7 @@ The Go SDK is open source, with its own repository on GitHub. This repository co
 
 1. **Find the Repository:** Go to `github.com/google/adk-go`.
 2. **Verify the Version:** Check the latest release tags. You should see `v2.4.0` or higher.
-3. **Explore the `examples` directory:** There's no dedicated `hello_world` folder here (that's a Python-repo thing) — the closest official runnable example is `examples/workflow/basic`.
+3. **Explore the `examples` directory:** The closest official runnable example is `examples/workflow/basic`.
 4. **Examine the Code:** Open `examples/workflow/basic/main.go` and read through it. Try to connect what you see to the concepts you skimmed in Step 1 (`workflow.NewFunctionNode`, `workflow.Chain`, `workflowagent.New`).
 
 ***Scavenger Hunt!***
@@ -45,7 +45,7 @@ In the next module, you will use this knowledge to set up your own local Go deve
 
 ## Self-Reflection Questions
 
-- Why is it important to have official documentation and code examples for a framework like the ADK, especially when a language's SDK (like Go's) is newer than another (like Python's)?
+- Why is it important to have official documentation and code examples for a framework like the ADK, especially for an SDK as new as Go's?
 - Based on the file names in the `examples` directory, what are some of the advanced capabilities you think the Go SDK might have?
 - How can community support channels like GitHub Issues and Discussions accelerate your learning process?
 

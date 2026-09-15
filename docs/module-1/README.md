@@ -44,7 +44,7 @@ ADK 2.0 moves away from monolithic agents and rigid hierarchies toward a flexibl
 | **Node** — a discrete unit of work | `workflow.NewFunctionNode(name, fn, workflow.NodeConfig{...})` for plain code, or an `llmagent.New(...)` agent used directly as a node for LLM-powered steps |
 | **Edge** — flow of control and data between nodes | `workflow.Chain(workflow.Start, nodeA, nodeB, ...)` for sequential flow; explicit `workflow.Edge{}` values with `StringRoute`/`IntRoute`/`BoolRoute` for branching |
 | **Workflow** — the container and orchestrator | `workflowagent.New(workflowagent.Config{Name, Description, Edges: edges})` — wraps a set of edges so it satisfies the same interface as a single agent |
-| **App & Runner** — the infrastructure layer | Go *does* have a direct `Runner` equivalent: `runner.NewInMemory(appName, agent)` — its own doc comment calls it "equivalent to Python's InMemoryRunner" — then `(*Runner).Run(ctx, userID, sessionID, msg, cfg, opts...)` yields events, just like `run_debug`. The `get-started` quickstart instead goes through the higher-level `cmd/launcher` (`full.NewLauncher()` + `agent.NewSingleLoader(...)`) to get a full CLI/dev-UI/API-server app for free — use `runner` directly when you just need to run an agent programmatically (e.g. a script), `cmd/launcher` when you want a ready-made app shell. An `App` type exists for advanced cases (plugins, caching, lifecycle). |
+| **App & Runner** — the infrastructure layer | `runner.NewInMemory(appName, agent)` builds a runner you drive directly from your own code: `(*Runner).Run(ctx, userID, sessionID, msg, cfg, opts...)` yields the agent's events one at a time. The `get-started` quickstart instead goes through the higher-level `cmd/launcher` (`full.NewLauncher()` + `agent.NewSingleLoader(...)`) to get a full CLI/dev-UI/API-server app for free — use `runner` directly when you just need to run an agent programmatically (e.g. a script), `cmd/launcher` when you want a ready-made app shell. An `App` type exists for advanced cases (plugins, caching, lifecycle). |
 | **Tool** — capability interfaces | `tool.Tool` interface; built-ins like `tool/geminitool.GoogleSearch{}`, custom ones via `tool/functiontool` |
 | **Session & State** — context and memory across a run | Package `session` |
 
@@ -55,4 +55,8 @@ In this course, you will learn to think in **Graphs and Nodes**, mastering ADK 2
 - AI Agents are autonomous systems that perceive, reason, and act using tools.
 - **ADK 2.0** uses a **Graph Architecture** where Agents and Tools are **Nodes** connected by **Edges** — and it's available for Go today via `google.golang.org/adk/v2`.
 - ADK-built agents deploy on the **Gemini Enterprise Agent Platform** (formerly Vertex AI), regardless of which language SDK built them.
-- Go's SDK has a direct `Runner` equivalent (`runner.NewInMemory` + `Run`), just like Python — but the quickstart samples favor the higher-level `cmd/launcher` for a ready-made CLI/dev-UI app; reach for `runner` directly when you want to drive an agent from your own code.
+- Go's SDK gives you `runner.NewInMemory` + `Run` for driving an agent directly from your own code, and the higher-level `cmd/launcher` when you want a ready-made CLI/dev-UI app instead — pick whichever fits what you're building.
+
+<hr/>
+
+> **Coming from Python?** Go's `runner.NewInMemory` is the same idea as Python's `InMemoryRunner` — its own doc comment says so directly — and `cmd/launcher` is the closest thing to `adk web`'s ready-made app shell.

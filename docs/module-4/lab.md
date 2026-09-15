@@ -6,9 +6,9 @@ Build a **Support Analyzer** agent that reads a customer support ticket and retu
 
 ## Lab Tasks
 
-1. No `adk create` scaffolding step in Go, same as module-3 — `cmd/support-analyzer/main.go` already exists in this repo, hand-written directly.
+1. `cmd/support-analyzer/main.go` already exists in this repo, hand-written directly — same starting point as module-3's echo agent.
 2. Read `cmd/support-analyzer/prompts/support_analyzer_instruction.md` (loaded at startup into the shared `internal/infrastructure/prompts` cache — see `main.go`'s `init()`). Notice it enumerates the exact allowed `category`/`sentiment` values rather than leaving them open-ended.
-3. **Structured Output:** `main.go`'s `buildRootAgent` sets `OutputSchema: supportAnalysisSchema` — a hand-built `*genai.Schema` matching the `SupportAnalysis` struct's three fields. There's no Pydantic-style auto-derivation in Go; the schema and the struct are two separate declarations you keep in sync yourself.
+3. **Structured Output:** `main.go`'s `buildRootAgent` sets `OutputSchema: supportAnalysisSchema` — a hand-built `*genai.Schema` matching the `SupportAnalysis` struct's three fields. The schema and the struct are two separate declarations; keep them in sync yourself whenever one changes.
 4. **Session State:** `OutputKey: "last_ticket_analysis"` tells the SDK to save the agent's JSON reply into `event.Actions.StateDelta["last_ticket_analysis"]` on the final response event.
 5. **Why the model matters here:** this repo's shared `OLLAMA_MODEL` default (`qwen3.8:27b`, a GGUF quantization) was chosen specifically because it supports JSON-schema-constrained output — other quantizations of the same model family don't (confirmed: Ollama returns `501 "structured output is unavailable"` for them). No `.env` change or cloud credentials needed; the default just works.
 6. **Run and Verify:**
@@ -25,7 +25,7 @@ Build a **Support Analyzer** agent that reads a customer support ticket and retu
    > **Known quirk, not a bug (same as module-3):** the Dev UI and `console` mode render the model's raw response, including chain-of-thought reasoning, before the JSON answer — this is the SDK's own rendering, not filtered the way this module's own code and tests filter it.
 7. **Inspect State:** After a few interactions, the JSON saved to `last_ticket_analysis` is what a downstream agent or tool would consume in a multi-agent system — this module doesn't build that consumer, just proves the value lands there.
 
-### Alternative: Console Mode (Bonus, No Python Parallel)
+### Alternative: Console Mode
 
 ```bash
 go run ./cmd/support-analyzer console

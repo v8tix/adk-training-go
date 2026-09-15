@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build a vision-capable agent that analyzes a product photo and writes a marketing description — this repo's mirror of Python's "Visual Product Catalog Analyzer," using the App/Runner pattern from module-6 plus one new piece: explicit session creation.
+Build a vision-capable agent that analyzes a product photo and writes a marketing description, using the runner pattern from module-6 plus one new piece: explicit session creation.
 
 ## Lab Tasks
 

@@ -30,9 +30,9 @@ This module found the same class of gap module-7 found for images, in a differen
 
 **The precise, correct claim is: this SDK's local-model client can't send any non-function built-in tool — not that Ollama or the underlying model has no search capability at all.** `cmd/researcher` therefore requires `MODEL_TYPE=gemini`, hardcoded in its own `main()`, same as `cmd/visual-catalog` in module-7.
 
-### Why the Plain `GOOGLE_AI_STUDIO_API_KEY` Path Suffices — Confirmed Live, No Vertex AI Needed
+### `google_search` Needs No New Setup Either
 
-Python's lab asks for a full Vertex AI setup (enabling the Vertex AI API, configuring `GOOGLE_GENAI_USE_VERTEXAI`, a project ID, and a location) specifically because `google_search` "requires an Agent Platform configuration." This is the **second** time in this course that a Python-stated Vertex AI requirement turned out to be unnecessary for this repo's simpler setup (module-7 found the same for vision):
+Confirmed live: the same `GOOGLE_AI_STUDIO_API_KEY` path every module since module-2 already uses is enough for `google_search`, too — no separate project/location configuration needed.
 
 ```
 $ go run ./temp/module-8/probe2   # a researcher_agent, MODEL_TYPE=gemini, existing GOOGLE_AI_STUDIO_API_KEY
@@ -44,12 +44,16 @@ Answer: <a real, current, grounded answer>
 
 No `GOOGLE_GENAI_USE_VERTEXAI`, `GOOGLE_CLOUD_PROJECT`, or `GOOGLE_CLOUD_LOCATION` set anywhere — the same `GOOGLE_AI_STUDIO_API_KEY` path every module since module-2 already uses was sufficient.
 
-### `event.GroundingMetadata`: An Automatable Stand-In for the Trace View
+### Proving the Tool Actually Fired: `event.GroundingMetadata`
 
-Python's lab verifies the tool actually fired by manually opening the Dev UI's Trace view and reading it. This repo's `session.Event` (returned by every `runner.Run` call) embeds `model.LLMResponse`, which carries `GroundingMetadata *genai.GroundingMetadata` directly — non-nil exactly when a real search happened. That means this module's automated test can assert the tool actually fired structurally, rather than requiring a human to inspect the Trace view — though the Trace view is still there and still useful (see the lab).
+`session.Event` (returned by every `runner.Run` call) embeds `model.LLMResponse`, which carries `GroundingMetadata *genai.GroundingMetadata` directly — non-nil exactly when a real search happened. That gives you an automated, structural way to assert a tool actually fired, instead of only being able to check by eye in the Dev UI's Trace view (which is still there, and still useful — see the lab).
 
 ### Key Takeaways
 - A **built-in tool** like `google_search` runs inside the model itself; a **custom function tool** (next module) is your own code the ADK calls locally. `llmagent.Config.Tools []tool.Tool` is the attachment point for both.
 - The local Ollama backend's Go client can't send any non-function built-in tool (confirmed via the exact source check and a live, reproduced error) — a real, precisely-scoped SDK limitation, not a claim about Ollama's or the model's own capabilities.
-- The plain `GOOGLE_AI_STUDIO_API_KEY` path already supports `google_search`, confirmed live — no Vertex AI setup needed, a second such simplification after module-7's vision finding.
+- The plain `GOOGLE_AI_STUDIO_API_KEY` path already supports `google_search`, confirmed live — no new setup needed.
 - `event.GroundingMetadata` gives a real, automatable way to verify a built-in tool fired, instead of relying only on manual Trace-view inspection.
+
+<hr/>
+
+> **Coming from Python?** Python's lab asks for a full Vertex AI setup for `google_search` (`GOOGLE_GENAI_USE_VERTEXAI`, a project ID, a location) because the tool "requires an Agent Platform configuration." This repo's simpler `GOOGLE_AI_STUDIO_API_KEY` path handles it just fine, confirmed live — the second time this course has found a Python-stated Vertex AI requirement unnecessary here (module-7 found the same for vision). And where Python's lab verifies the tool fired by manually reading the Dev UI's Trace view, `event.GroundingMetadata` lets you check that automatically instead.

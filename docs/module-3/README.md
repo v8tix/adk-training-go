@@ -11,9 +11,9 @@ At its heart, an ADK Agent is a blueprint that tells a Large Language Model (LLM
 * **`Instruction`:** The most critical part. This is the detailed prompt that defines the agent's persona, goals, and constraints.
 * **`Description`:** A short, human-readable summary of the agent's purpose.
 
-### Defining an Agent: Go Has One Way, Not Two
+### Defining an Agent in Code
 
-The Python course offers two ways to define an agent — a YAML config file, or Python code — and settles on Python as "the modern standard" for everything past this module. The Go SDK only has the programmatic form: `llmagent.New(llmagent.Config{...})`. There's no YAML-config path to skip here, because there was never a second option to begin with.
+You build an agent with `llmagent.New(llmagent.Config{...})` — plain Go code, no config file to write or parse:
 
 ```go
 rootAgent, err := llmagent.New(llmagent.Config{
@@ -53,19 +53,23 @@ l.Execute(ctx, config, os.Args[1:])
 
 This gives two run modes for free, confirmed by running both this session:
 
-* **`go run ./cmd/echo-agent web --port 9091 webui -api_server_address http://localhost:9091/api api`** — starts a local Dev UI at `http://localhost:9091/ui/` (note the flag position: `web`'s own flags go directly after `web`, then each sub-launcher keyword followed by its own flags; the lab uses `9091` instead of the launcher's default `8080`, which is commonly already occupied by other local dev tools — see the lab for a confirmed real collision). **Both `webui` and `api` are required together** — confirmed live in module-5: the Dev UI's frontend calls the REST API (`api`) for everything beyond serving its own static page, so `webui` alone starts a UI that 404s the moment you try to actually use it. **`webui`'s `-api_server_address` must be set explicitly whenever `--port` isn't 8080** — it's a separate flag telling the browser-side frontend where to call the API, with its own hardcoded `http://localhost:8080/api` default independent of `--port`; skip it and the Dev UI keeps trying port 8080 no matter what port the server actually runs on, confirmed live via `/ui/assets/config/runtime-config.json`. This is the Go equivalent of `uv run adk web`.
-* **`go run ./cmd/echo-agent console`** — a no-browser CLI chat mode. No direct parallel in the Python course; a bonus this launcher gives you for free.
+* **`go run ./cmd/echo-agent web --port 9091 webui -api_server_address http://localhost:9091/api api`** — starts a local Dev UI at `http://localhost:9091/ui/` (note the flag position: `web`'s own flags go directly after `web`, then each sub-launcher keyword followed by its own flags; the lab uses `9091` instead of the launcher's default `8080`, which is commonly already occupied by other local dev tools — see the lab for a confirmed real collision). **Both `webui` and `api` are required together** — confirmed live in module-5: the Dev UI's frontend calls the REST API (`api`) for everything beyond serving its own static page, so `webui` alone starts a UI that 404s the moment you try to actually use it. **`webui`'s `-api_server_address` must be set explicitly whenever `--port` isn't 8080** — it's a separate flag telling the browser-side frontend where to call the API, with its own hardcoded `http://localhost:8080/api` default independent of `--port`; skip it and the Dev UI keeps trying port 8080 no matter what port the server actually runs on, confirmed live via `/ui/assets/config/runtime-config.json`.
+* **`go run ./cmd/echo-agent console`** — a no-browser CLI chat mode, a nice option whenever you don't want a browser open at all.
 
 **Caveat, confirmed by actually running it:** both the `console` and `web` UIs render the model's raw response, including its chain-of-thought, when using this course's default thinking-capable model — they don't apply the `Thought`-filtering this repo's own code does elsewhere (`firstAnswerText`). If you see visible reasoning text before the echoed answer in the UI, that's the SDK's own renderer, not a bug in this module's code.
 
 There's no confirmed Go equivalent of the Python Dev UI's "Trace" tab specifically — the launcher's `web` mode does wire in OpenTelemetry (the `telemetry` package), which strongly suggests *some* observability view exists, but this wasn't verified directly this session.
 
-### No `adk create` Scaffolding Wizard in Go
+### Starting a New Agent Program
 
-Python's `uv run adk create <name>` is an interactive wizard that generates a project skeleton. The Go SDK has no equivalent — `cmd/adkgo`, the SDK's own installable CLI, only has *deployment* subcommands (Cloud Run, Agent Engine), not project scaffolding. In Go, you just write `main.go` directly, the same way `cmd/verify-setup` and `cmd/echo-agent` in this repo already do.
+There's no scaffolding command to generate a new agent project — you just write `main.go` directly, the same way `cmd/verify-setup` and `cmd/echo-agent` in this repo already do. `cmd/adkgo`, the SDK's own installable CLI, is for *deployment* (Cloud Run, Agent Engine), not project generation.
 
 ### Key Takeaways
-- An ADK agent in Go is defined by `llmagent.Config{Name, Model, Instruction, Description}` — no YAML alternative exists, unlike Python.
+- An ADK agent in Go is defined entirely in code: `llmagent.Config{Name, Model, Instruction, Description}`.
 - `cmd/launcher` gives you `web` (Dev UI) and `console` (CLI chat) run modes for free once an agent is wrapped in `agent.NewSingleLoader`.
-- There's no Go equivalent to `adk create`'s scaffolding wizard — you hand-write `main.go`.
+- A new agent program starts as a hand-written `main.go` — there's no generator command, so you build it up from the patterns in this repo's own `cmd/` programs.
 - A thinking-capable model's raw reasoning shows through in the launcher's own UI rendering; filter it yourself (as this repo's tests do) whenever you need the answer alone, not just displayed to a human.
+
+<hr/>
+
+> **Coming from Python?** Python's course offers a second way to define an agent (a YAML config file) and a scaffolding wizard (`uv run adk create <name>`) that generates a project skeleton. Go's SDK has neither — `llmagent.Config` in code is the only way to define an agent, and every `cmd/` program here started as a hand-written `main.go`.

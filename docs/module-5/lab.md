@@ -51,9 +51,9 @@ curl -X POST http://localhost:9091/api/run_sse \
 
 Real, confirmed response: `404`, `failed to find the session: failed to get session: session not found: "missing_session"`.
 
-**Note the two things that differ from the Python lab's literal curl commands, both confirmed live, not assumed:**
-- Fields are **camelCase** (`appName`, `userId`, `sessionId`, `newMessage`) — Python's snake_case (`app_name`, ...) gets rejected with a real `400: unknown field`.
-- `appName` is the agent's own **`Name`** (`support_analyzer_agent`, set in `cmd/support-analyzer/main.go`'s `buildRootAgent`) — not a Python-style project-folder name.
+**Two things worth noticing about the request shape, confirmed live:**
+- Fields are **camelCase** (`appName`, `userId`, `sessionId`, `newMessage`) — a snake_case field name gets rejected with a real `400: unknown field`.
+- `appName` is the agent's own **`Name`** (`support_analyzer_agent`, set in `cmd/support-analyzer/main.go`'s `buildRootAgent`).
 
 **Step B (The Fix):** create the session explicitly:
 

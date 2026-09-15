@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build an agent that can search the web to answer questions about current events — this repo's mirror of Python's "Researcher" lab, using the ADK's built-in `google_search` tool.
+Build an agent that can search the web to answer questions about current events, using the ADK's built-in `google_search` tool.
 
 ## Lab Tasks
 
@@ -47,7 +47,7 @@ A real, current, grounded answer — not something a model's own training data c
 go run ./cmd/researcher web --port 9091 webui -api_server_address http://localhost:9091/api api
 ```
 
-Open `http://localhost:9091/`, ask the same weather question, then open the **Trace** view for that turn. You should see the `google_search` function call and its result as a distinct step before the model's final answer — Python's own verification method, still available here.
+Open `http://localhost:9091/`, ask the same weather question, then open the **Trace** view for that turn. You should see the `google_search` function call and its result as a distinct step before the model's final answer.
 
 Confirmed live in this repo: `curl http://localhost:9091/api/list-apps` returns `["researcher_agent"]`, and the Dev UI itself (`http://localhost:9091/`, redirecting to `/ui/`) returns `200`.
 

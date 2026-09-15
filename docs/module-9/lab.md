@@ -2,13 +2,13 @@
 
 ## Goal
 
-Build an agent that performs basic arithmetic using custom function tools — this repo's mirror of Python's "Calculator" lab.
+Build an agent that performs basic arithmetic using custom function tools.
 
 ## Lab Tasks
 
 ### 1. Read `internal/agents/calculator/tools.go`
 
-Four handler functions (`add`, `subtract`, `multiply`, `divide`), each `func(_ agent.Context, args XxxArgs) (CalcResult, error)`. Notice `divide` returns `CalcResult{Status: "error", Error: "division by zero"}, nil` for a zero denominator — a structured result, not a Go `error`. Compare this to Python's lab instruction: "Handle the case where b is 0, returning an error dictionary."
+Four handler functions (`add`, `subtract`, `multiply`, `divide`), each `func(_ agent.Context, args XxxArgs) (CalcResult, error)`. Notice `divide` returns `CalcResult{Status: "error", Error: "division by zero"}, nil` for a zero denominator — a structured result the model can read and explain, not a Go `error` that would fail the tool call itself.
 
 ### 2. Read `internal/agents/calculator/agent.go`
 
@@ -41,7 +41,7 @@ subtraction, multiplication, and division. I'm not equipped
 to answer general knowledge questions.
 ```
 
-All three of Python's lab's own manual test cases, confirmed working: a real calculation, a graceful divide-by-zero explanation (not a crash or a fabricated number), and a graceful decline of an off-topic question — all running entirely on the local model, zero cost.
+Three real behaviors confirmed working: a real calculation, a graceful divide-by-zero explanation (not a crash or a fabricated number), and a graceful decline of an off-topic question — all running entirely on the local model, zero cost.
 
 ### 4. Read `internal/agents/calculator/tools_test.go`
 

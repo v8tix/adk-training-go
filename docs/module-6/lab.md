@@ -12,7 +12,7 @@ This is where the agent's definition now lives — moved out of `cmd/support-ana
 
 ### 2. Read `cmd/support-analyzer-runner/main.go`
 
-No `cmd/launcher` import at all — this is a plain Go program, mirroring Python's `main.py` skeleton exactly:
+No `cmd/launcher` import at all — this is a plain Go program that drives the agent directly:
 
 ```go
 r, _ := runner.NewInMemory("support_analyzer_runner_app", rootAgent)
@@ -26,7 +26,7 @@ bobResult, _ := runOnce(ctx, r, "bob", "bob_session", "My wifi is slow")
 fmt.Printf("Agent Response: %s\n", bobResult)
 ```
 
-`runOnce` is this repo's standard "drive one message through `Run`'s iterator, return the final structured result" helper — there's no `run_debug()` in Go to reach for instead (see the README for why).
+`runOnce` is this repo's standard "drive one message through `Run`'s iterator, return the final structured result" helper (see the README for the full pattern).
 
 ### 3. Run it
 

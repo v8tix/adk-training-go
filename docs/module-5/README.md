@@ -2,15 +2,9 @@
 
 ## Theory
 
-### Three Modes, One Launcher
+### Three Modes, One Composable Launcher
 
-Python's course walks through three separate CLI commands (`adk web`, `adk run`, `adk api_server`). Go's SDK gives you the same three modes through one composable launcher, already partly in use since module-3:
-
-| Python | Go | Confirmed by |
-|---|---|---|
-| `uv run adk run` | `console.NewLauncher()` | Used since module-3 |
-| `uv run adk web` | `web.NewLauncher(webui.NewLauncher(), api.NewLauncher())` | Used since module-3; `api` addition this module |
-| `uv run adk api_server` | `web.NewLauncher(..., api.NewLauncher())` — same package, no dev UI needed | New this module |
+You've already been using `console.NewLauncher()` and `web.NewLauncher(webui.NewLauncher(), api.NewLauncher())` since module-3. This module adds a third way to run the same agent: the REST API on its own, no Dev UI attached, by leaving `webui.NewLauncher()` out and keeping only `api.NewLauncher()`. All three modes come from the same composable `universal.NewLauncher`:
 
 ```go
 l := universal.NewLauncher(
@@ -26,7 +20,7 @@ l.Execute(ctx, config, os.Args[1:])
 
 ### The REST API Server, Confirmed Route-by-Route
 
-Go's `google.golang.org/adk/v2/server/adkrest` implements the same REST surface Python's `adk api_server` does, confirmed by reading its router source directly:
+`google.golang.org/adk/v2/server/adkrest` gives you a real REST surface for driving an agent from any HTTP client, confirmed by reading its router source directly:
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -39,10 +33,10 @@ Go's `google.golang.org/adk/v2/server/adkrest` implements the same REST surface 
 
 (`/api` is the default path prefix — `web`'s own `--help` documents `-path_prefix`, overridable if you ever need something else.)
 
-### Two Real Syntax Divergences From Python, Confirmed Live
+### Two Things to Know About the Request Shape
 
-1. **Request bodies are camelCase, not snake_case.** `RunAgentRequest{AppName, UserId, SessionId, NewMessage}` (confirmed in `server/adkrest/internal/models/runtime.go`) serializes as `appName`/`userId`/`sessionId`/`newMessage`. Python's `app_name`/`user_id`/`session_id`/`new_message` gets rejected outright — Go's decoder is strict and returns a real `400` naming the unknown field. The nested message shape (`role`, `parts`, `text`) stays lowercase, matching Python.
-2. **`app_name` in the URL/body is the agent's own `Name`, not a Python-style project-folder name.** This repo's Support Analyzer sets `llmagent.Config.Name = "support_analyzer_agent"`, so every session-lifecycle call targets `support_analyzer_agent`, not `support_analyzer` (there's no Go equivalent of a project directory to derive that second name from).
+1. **Request bodies are camelCase.** `RunAgentRequest{AppName, UserId, SessionId, NewMessage}` (confirmed in `server/adkrest/internal/models/runtime.go`) serializes as `appName`/`userId`/`sessionId`/`newMessage`. The decoder is strict — an unrecognized field name gets rejected with a real `400` naming it, so getting the casing right matters. The nested message shape (`role`, `parts`, `text`) stays lowercase.
+2. **`app_name` in the URL/body is the agent's own `Name`.** This repo's Support Analyzer sets `llmagent.Config.Name = "support_analyzer_agent"`, so every session-lifecycle call targets that exact string.
 
 ### The Trace View: Backend Confirmed, Frontend Not Independently Verified
 
@@ -50,10 +44,14 @@ Module-3 left the Trace View as "not confirmed." This module upgrades that: `ser
 
 ### App & Runner, Once More
 
-Same architecture note from earlier modules, now exercised a third way: `console` and `web`'s Dev UI both use `runner.NewInMemory` under the hood (confirmed since module-2/3); the REST API server manages sessions itself via the same `session.Service` interface, backed by an in-memory implementation by default (the launcher logs `"No session service configured. Using an in-memory one..."` on startup) — matching Python's note that `api_server` uses "a production-style environment where sessions and state are managed by the framework."
+Same architecture note from earlier modules, now exercised a third way: `console` and `web`'s Dev UI both use `runner.NewInMemory` under the hood (confirmed since module-2/3); the REST API server manages sessions itself via the same `session.Service` interface, backed by an in-memory implementation by default (the launcher logs `"No session service configured. Using an in-memory one..."` on startup) — a production-style environment where sessions and state are managed by the framework, not by whatever code happens to call `Run`.
 
 ### Key Takeaways
-- All three Python execution modes have a direct, confirmed Go equivalent — no gaps, no invented parallels.
+- One composable launcher (`universal.NewLauncher`) gives you a headless CLI, a full Dev UI, and a standalone REST server — pick sub-launchers to match what you need.
 - `webui` and `api` must be registered (and named on the command line) together — a real bug in this repo until this module, now fixed everywhere it appeared.
-- The REST API's JSON is camelCase and keys sessions by the agent's `Name`, not a Python-style project folder name — two concrete divergences to expect, not a broken port.
+- The REST API's JSON is camelCase and keys sessions by the agent's own `Name` — worth knowing before your first request gets rejected.
 - The Trace View's backend routes are real and confirmed in source; the frontend rendering wasn't independently verified.
+
+<hr/>
+
+> **Coming from Python?** `console.NewLauncher()`, `web.NewLauncher(webui.NewLauncher(), api.NewLauncher())`, and `web.NewLauncher(api.NewLauncher())` (no `webui`) are the direct equivalents of `uv run adk run`, `uv run adk web`, and `uv run adk api_server`, respectively. Two real syntax differences to expect: request bodies are camelCase, not snake_case (Python's `app_name` gets rejected outright), and `app_name` is the agent's own `Name` field, not a Python-style project-folder name.

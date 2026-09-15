@@ -18,7 +18,7 @@ This exact table is what `cmd/echo-agent/echo_test.go` asserts automatically.
 
 ## Lab Tasks
 
-1. There's no `adk create` scaffolding step in Go — `cmd/echo-agent/main.go` already exists in this repo, hand-written directly.
+1. `cmd/echo-agent/main.go` already exists in this repo, hand-written directly — that's how every agent program in Go starts.
 2. Read `cmd/echo-agent/prompts/echo_instruction.md` (loaded at startup into the shared `internal/infrastructure/prompts` cache — see `main.go`'s `init()` — kept as a plain text file instead of a Go string constant so it's easy to read and edit). Notice how explicit and repetitive it is ("never answer," "echo the question itself," "do not add commentary"). This isn't overkill: the default model is thinking-capable and will try to be "helpful" unless told plainly, more than once, not to.
 3. **Instruction Strategy:** If you change the instruction, keep it at least this explicit — a softer instruction risks the model answering instead of echoing.
 4. No `.env` configuration is required for the default (local Ollama) path. If you want to test against Gemini instead, copy `.env.example` to `.env` and set `MODEL_TYPE=gemini` plus `GOOGLE_AI_STUDIO_API_KEY`.
@@ -36,7 +36,7 @@ This exact table is what `cmd/echo-agent/echo_test.go` asserts automatically.
 
    > **Known quirk, not a bug:** the Dev UI shows the model's raw response, including its chain-of-thought, before or alongside the echoed answer — the launcher's own UI doesn't filter reasoning traces the way this repo's own code does elsewhere. If you see visible reasoning text, that's expected with this course's default model.
 
-### Alternative: Console Mode (Bonus, No Python Parallel)
+### Alternative: Console Mode
 
 ```bash
 go run ./cmd/echo-agent console

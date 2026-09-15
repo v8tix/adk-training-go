@@ -2,9 +2,9 @@
 
 ## Theory
 
-### The Building Block: `genai.Part`, Confirmed Identical in Shape to Python's
+### Building a Multimodal Message
 
-Python's `types.Part(inline_data=types.Blob(data=image_bytes, mime_type=...))` has a direct, confirmed Go equivalent — `genai.Part.InlineData *Blob`, with a convenience constructor:
+An image joins a message the same way text does — as one more `*genai.Part` in the same `*genai.Content`. `genai.Part.InlineData` holds the raw bytes and MIME type, with a convenience constructor to build it:
 
 ```go
 imagePart := genai.NewPartFromBytes(imageBytes, "image/jpeg")
@@ -14,7 +14,7 @@ msg := genai.NewContentFromParts([]*genai.Part{
 }, genai.RoleUser)
 ```
 
-`genai.NewContentFromParts` is Go's equivalent of Python's `types.Content(role=..., parts=[...])` — both build the same multi-part message shape.
+`genai.NewContentFromParts` builds the multi-part message — text and image side by side, sent as one turn.
 
 ### A Real, Confirmed Local-Inference Gap — Precisely Scoped, Not Overstated
 
@@ -25,9 +25,9 @@ This module found something genuinely worth being precise about, confirmed with 
 
 **The precise, correct claim is: this SDK's local-model client can't send images yet — not that Ollama or the underlying model can't receive them.** `cmd/visual-catalog` therefore requires `MODEL_TYPE=gemini`, hardcoded in its own `main()` rather than left to the shared `.env` default, so it can never silently hit this confirmed error path.
 
-### Why Gemini via `GOOGLE_AI_STUDIO_API_KEY`, Not Vertex AI
+### Vision Needs No New Setup
 
-Python's lab asks for a Vertex AI setup (`GOOGLE_GENAI_USE_VERTEXAI=1`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`). This repo's existing Gemini path — the same `internal/infrastructure/llm.BuildModel` every module since module-2 already uses, authenticated with `GOOGLE_AI_STUDIO_API_KEY` — was tested directly with a real image and returned an accurate description with no Vertex-specific configuration at all. No new backend, no new env vars, no new setup for this module.
+The same Gemini path every module since module-2 already uses — `internal/infrastructure/llm.BuildModel`, authenticated with `GOOGLE_AI_STUDIO_API_KEY` — handles vision correctly out of the box. Tested directly with a real image, it returned an accurate description with no new configuration at all: no new backend, no new env vars, nothing to set up beyond what you already have.
 
 ### The Explicit-Session Lesson, Confirmed Live
 
@@ -41,13 +41,15 @@ Every prior module's `cmd/` program used `runner.NewInMemory`, which sets `AutoC
 // Run(...) → succeeds
 ```
 
-Exactly Python's lesson — `run_async` needs an explicit `create_session` call; `run_debug` (module-6) hid that step for you.
-
 > **Going Further:** `cmd/visual-catalog-local` proves the local-inference-gap claim above from the other side, live — it sends the exact same two product photos directly to the local Ollama server, bypassing `llmagent`/`runner` entirely, and gets back correct descriptions. This is **not** a second way to do this module's real lesson (that's still `cmd/visual-catalog` — the point is that path *needs* Gemini because of a confirmed SDK gap) — it's a bonus demonstrating that the gap is specifically in `model/openaimodel`, this repo's ADK Go SDK client for the local backend, not in Ollama or the model. It uses [kawa](https://github.com/v8tix/kawa) (a typed HTTP-call library with built-in retry) as its HTTP layer instead of the ADK SDK, since this path is explicitly outside the framework this course teaches. See `internal/agents/visualcatalog/local_vision.go` and `cmd/visual-catalog-local/main.go`.
 
 ### Key Takeaways
-- `genai.NewPartFromBytes`/`NewContentFromParts` are Go's direct, confirmed equivalents of Python's `types.Part`/`types.Content` for multimodal input.
+- `genai.NewPartFromBytes`/`NewContentFromParts` build a multimodal message — image and text as sibling parts of the same content.
 - The local Ollama backend's model server can see images (confirmed via a direct API call); this SDK's Go client for that backend currently can't send them (confirmed via the exact source location and error). Keep these two facts separate — conflating them either direction would be wrong.
-- Gemini via the existing `GOOGLE_AI_STUDIO_API_KEY` path handles vision correctly, with no Vertex AI setup needed.
+- Gemini via the existing `GOOGLE_AI_STUDIO_API_KEY` path handles vision correctly, with no new setup needed.
 - `runner.New` (unlike `runner.NewInMemory`) requires an explicit `session.Service.Create` call before the first `Run` against a new session — confirmed by reproducing the failure and the fix live.
 - Bonus, outside the ADK lesson: `cmd/visual-catalog-local` confirms the local model server itself handles the same images correctly, entirely locally and for free, by calling Ollama directly — the gap really is in this SDK's client, not the backend it talks to.
+
+<hr/>
+
+> **Coming from Python?** `genai.NewPartFromBytes`/`NewContentFromParts` are Go's direct equivalents of `types.Part(inline_data=types.Blob(...))`/`types.Content(role=..., parts=[...])`. Python's lab asks for a full Vertex AI setup (`GOOGLE_GENAI_USE_VERTEXAI=1`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`) for vision — this repo's simpler `GOOGLE_AI_STUDIO_API_KEY` path handles it just as well, confirmed live. And `runner.New` needing an explicit `session.Service.Create` call is the same lesson as Python's `run_async` needing an explicit `create_session` — `run_debug` (module-6) hid that step for you in both languages.

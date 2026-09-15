@@ -11,15 +11,19 @@ Before diving into building agents, it's crucial to set up a proper development 
 * **Go Requirement:** Strictly **1.27 or higher** — this course's chosen floor (matches `go.mod`).
 * **ADK Requirement:** `google.golang.org/adk/v2` (`v2.4.0`+), Google ADK 2.0's official Go SDK. Note its own package requirement is Go 1.25+ — lower than this course's floor, since 1.27 is what this repo actually targets.
 
-### Go Modules: No Extra Tool Needed
+### Go Modules: Dependency Management Built In
 
-Python needs `uv` (or `pip`/`venv`) as a separate package manager layered on top of the language. Go doesn't — module management, dependency locking, and reproducible builds are all built directly into the `go` toolchain:
+Go's own toolchain handles module management, dependency locking, and reproducible builds directly — no separate package manager to install:
 
-* `go.mod` declares the module and its dependencies (equivalent to `uv`'s project file).
-* `go.sum` locks exact dependency versions and their checksums (equivalent to `uv.lock`).
+* `go.mod` declares your module and its dependencies.
+* `go.sum` locks exact dependency versions and their checksums.
 * `go get <module>` adds a dependency; `go mod tidy` keeps `go.mod`/`go.sum` in sync with what your code actually imports.
 
-There's no separate virtual environment to activate either — a Go module *is* your isolated, reproducible unit.
+There's no separate virtual environment to activate, either — a Go module *is* your isolated, reproducible unit.
+
+<hr/>
+
+> **Coming from Python?** `go.mod` plays the role of `uv`'s (or `pip`'s) project file, and `go.sum` is Go's equivalent of `uv.lock` — but there's no separate tool to install first; it's all part of the `go` command you already have.
 
 ### Development Workflow
 
@@ -29,11 +33,11 @@ This repo currently supports local Go development only:
 2. Verify installation: `go version`.
 3. From the repo root, dependencies are already declared in `go.mod` — `go build ./...` fetches and builds everything.
 
-> Codespaces and a `.devcontainer` configuration aren't set up for this repo yet. If you're used to the Python course's one-click browser setup, that parity is a separate, future piece of work — not part of this module.
+> Codespaces and a `.devcontainer` configuration aren't set up for this repo yet — a one-click browser setup is a separate, future piece of work, not part of this module.
 
 ### Authentication: Connecting to a Model
 
-Unlike the Python course, this repo defaults to a **local** model — no cloud credentials needed to get started.
+This course defaults to a **local** model — no cloud credentials needed to get started.
 
 #### Option A: Local Ollama (Default, Recommended for This Course)
 
@@ -74,5 +78,5 @@ The local Ollama server isn't running, or `OLLAMA_BASE_URL` in your `.env` point
 ### Key Takeaways
 
 - **Go 1.27+** (this course's floor) and `google.golang.org/adk/v2` (`v2.4.0`+) are strictly required.
-- Go's own toolchain (`go.mod`/`go.sum`/`go mod tidy`) replaces what `uv` does for Python — no extra package manager needed.
+- Go's own toolchain (`go.mod`/`go.sum`/`go mod tidy`) handles dependency management directly — no extra package manager to install.
 - This course defaults to a **local Ollama model**; use a `.env` file and `MODEL_TYPE=gemini` only if you need to verify Google Cloud/AI Studio credentials specifically.

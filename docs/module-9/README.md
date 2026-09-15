@@ -26,37 +26,41 @@ func add(_ agent.Context, args AddArgs) (CalcResult, error) {
 }
 ```
 
-`functiontool.New[TArgs, TResults](cfg, handler)` infers the tool's parameter *schema* from `TArgs`'s Go type via reflection (`github.com/google/jsonschema-go`) — the same idea as Python's auto-schema-from-type-hints. **One real, precise difference: Go has no runtime docstring**, so the tool's `Name` and `Description` must be passed explicitly in `Config`, where Python pulls both straight from the function's own docstring. Per-*parameter* descriptions do have a direct equivalent, though: the `jsonschema:"..."` struct tag is Go's version of Python's docstring `Args:` line for that parameter.
+`functiontool.New[TArgs, TResults](cfg, handler)` infers the tool's parameter *schema* from `TArgs`'s Go type via reflection (`github.com/google/jsonschema-go`). The `Name` and `Description` still have to be passed explicitly in `Config` — Go has no runtime docstring to pull them from — but per-*parameter* descriptions come from the `jsonschema:"..."` struct tag right on each field.
 
-### The Uniform Result Shape
+### A Uniform Result Shape
 
-Python's lab returns a dict (`{"status": "success", "result": ...}`, or an error dict for division by zero). This repo's `CalcResult{Status string; Result float64; Error string}` is the direct Go equivalent — one shared struct, since all four tools produce the same kind of result. The one subtlety: `Func[TArgs, TResults]` returns `(TResults, error)`, but a Go `error` return fails the *tool call itself* at the framework level — the LLM never sees it as something to reason about. Division by zero must return `(CalcResult{Status: "error", Error: "division by zero"}, nil)`, a structured result, not a Go `error`, matching Python's own "return an error dictionary" instruction exactly.
+All four calculator tools share one result type, `CalcResult{Status string; Result float64; Error string}`, since they all produce the same kind of answer. The one subtlety: `Func[TArgs, TResults]` returns `(TResults, error)`, but a Go `error` return fails the *tool call itself* at the framework level — the LLM never sees it as something to reason about. Division by zero has to return `(CalcResult{Status: "error", Error: "division by zero"}, nil)` — a structured result the model can read and explain, not a Go `error` that short-circuits the call.
 
 **A real bug worth knowing about, found in review:** `Result`'s `json` tag must **not** have `omitempty`. `omitempty` on a `float64` treats a genuine `0` the same as "absent" — so `add(0, 0)` or `multiply(7, 0)` would silently hand the model a `{"status":"success"}` response with no `result` key at all, forcing it to guess the number itself. Confirmed via `json.Marshal(CalcResult{Status: "success", Result: 0})`: with `omitempty`, the `result` key vanishes entirely.
 
-### `agent.Context`: Always There, Not Opt-In
+### `agent.Context` Is Always There
 
-Python's `ToolContext` (for session-state access) is an optional extra parameter you add only when you need it. Go's `functiontool.Func[TArgs, TResults]` signature is `func(agent.Context, TArgs) (TResults, error)` unconditionally — every custom function tool always receives `agent.Context` as its first argument, whether it uses it or not. None of this lab's four tools need session state, but the capability is always present, never something to remember to add later.
+Every custom function tool's signature is `func(agent.Context, TArgs) (TResults, error)` — `agent.Context` is unconditionally the first argument, whether a given tool uses it or not. None of this lab's four tools need session state, but the capability is always present, never something to remember to add later (module-10 puts it to real use).
 
 ### Custom Function Tools Work Through the Local Backend — Confirmed Live, No Cloud Fallback
 
 Unlike module-7's vision agent and module-8's `google_search` agent, this module's tools need **no Gemini requirement at all**. `functiontool.New` produces a plain `genai.FunctionDeclaration` — exactly the one tool shape `model/openaimodel/tools.go`'s `ensureFunctionToolOnly` already accepts (it only rejects *non-function* built-ins). Confirmed live: an `add` tool run against this repo's default local model (`qwen3.8:27b`) was genuinely invoked and returned the correct sum. `cmd/calculator` therefore forces no backend — the local-first default just works.
 
-### Going Further: Mixing Built-in and Custom Tools — a Real Update Over Python's Docs
+### Going Further: Mixing a Built-in and a Custom Tool
 
-Python's README states mixing `google_search` with a custom function tool always fails (`400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools.`) and recommends multi-agent systems (module 15) as the only fix. Confirmed live in this Go SDK: the default behavior does fail the same way, but with a more specific error:
+Attaching both `geminitool.GoogleSearch{}` and a custom function tool to the same agent fails by default:
 
 ```
 400 ... Please enable tool_config.include_server_side_tool_invocations
 to use Built-in tools with Function calling.
 ```
 
-Doing exactly that — setting `llmagent.Config.GenerateContentConfig.ToolConfig.IncludeServerSideToolInvocations = true` — made the same mixed-tool agent work, correctly computing a real sum with both a built-in and a custom tool attached. Confirmed via `genai` source that this field is **Developer-API-only** (`"This field is not supported in Vertex AI"`) — the workaround is available specifically through this repo's existing simpler `GOOGLE_AI_STUDIO_API_KEY` path. This isn't required for this module's own lab (which uses only function tools), and it doesn't replace module 15's multi-agent lesson — it's a real, narrower option worth knowing about, likely added to the Gemini API after Python's docs were written.
+Doing exactly that — setting `llmagent.Config.GenerateContentConfig.ToolConfig.IncludeServerSideToolInvocations = true` — makes the same mixed-tool agent work, correctly computing a real sum with both a built-in and a custom tool attached. Confirmed via `genai` source that this field is **Developer-API-only** (`"This field is not supported in Vertex AI"`) — the same simpler `GOOGLE_AI_STUDIO_API_KEY` path this repo already uses. This isn't required for this module's own lab (which uses only function tools) — it's a real, narrower option worth knowing about for later, when you do want to combine tool types in one agent.
 
 ### Key Takeaways
-- `functiontool.New[TArgs, TResults](cfg, handler)` is Go's direct equivalent of passing a Python function into an agent's `tools` list — the parameter schema is inferred from `TArgs`'s type; the name and description must be given explicitly (no docstring to read at runtime).
+- `functiontool.New[TArgs, TResults](cfg, handler)` wraps a Go function as a tool — the parameter schema is inferred from `TArgs`'s type; the name and description are given explicitly.
 - A division-by-zero (or any tool-level failure) belongs in the structured result (`CalcResult{Status: "error", ...}`), not a Go `error` — a Go `error` fails the tool call itself, giving the LLM nothing to reason about.
 - A numeric result field must not have an `omitempty` JSON tag — a genuine `0` is a valid answer, not an absent one, and `omitempty` would silently drop it from what the model sees.
-- `agent.Context` is always the first parameter of a custom function tool in Go, unlike Python's opt-in `ToolContext`.
+- `agent.Context` is always the first parameter of a custom function tool.
 - Custom function tools work through the local Ollama backend, confirmed live — this is the first tools module needing no cloud fallback.
-- Mixing a built-in and a custom function tool, which Python's docs call impossible outside multi-agent systems, has a real, narrower workaround in this Go SDK via `IncludeServerSideToolInvocations` — Developer-API-only, confirmed via source.
+- Mixing a built-in and a custom function tool has a real, narrower workaround via `IncludeServerSideToolInvocations` — Developer-API-only, confirmed via source.
+
+<hr/>
+
+> **Coming from Python?** `functiontool.New` plays the same role as passing a plain Python function into an agent's `tools` list, with one real difference: Go has no runtime docstring, so `Name`/`Description` are explicit instead of read from one. `CalcResult` is the direct equivalent of Python's dict result shape (`{"status": "success", "result": ...}`, or an error dict). Python's `ToolContext` is an opt-in extra parameter; Go's `agent.Context` is always there. And Python's docs call mixing a built-in and custom function tool impossible outside multi-agent systems — this Go SDK has a real, narrower workaround, likely added to the Gemini API after those docs were written.
