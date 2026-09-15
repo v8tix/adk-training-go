@@ -6,12 +6,14 @@ Run and interact with the **Support Analyzer** agent (from modules 4-4.5) using 
 
 ## Lab Tasks
 
-### 1. `web --port 9091 webui api` (Dev UI)
+### 1. `web --port 9091 webui -api_server_address ... api` (Dev UI)
 
-> **Port choice:** this lab uses `9091` instead of the ADK launcher's default of `8080` — `8080` is commonly already occupied by other local dev tools (see module-3's lab for a confirmed real collision on this session's own machine, from Docker Desktop's own proxy). If `9091` is also taken on your machine, check with `lsof -i :9091` and pick any other free port instead, adjusting every URL in this lab to match — including in Task 3 below, which reuses this same port.
+> **Port choice:** this lab uses `9091` instead of the ADK launcher's default of `8080` — `8080` is commonly already occupied by other local dev tools (see module-3's lab for a confirmed real collision on this session's own machine, from Docker Desktop's own proxy). If `9091` is also taken on your machine, check with `lsof -i :9091` and pick any other free port instead, adjusting every URL in this lab **and** the `-api_server_address` flag below to match — including in Task 3 below, which reuses this same port.
+>
+> **A real, confirmed gotcha: `--port` alone is not enough.** The Dev UI's frontend learns where to call the API from a *separate* flag, `webui`'s own `-api_server_address`, which defaults to the hardcoded `http://localhost:8080/api` regardless of `--port` — confirmed live (see module-3's README for the full finding). That's why the command below sets it explicitly. Task 3's API-only mode doesn't need this flag — there's no Dev UI frontend involved there, `curl` talks to the API directly.
 
 ```bash
-go run ./cmd/support-analyzer web --port 9091 webui api
+go run ./cmd/support-analyzer web --port 9091 webui -api_server_address http://localhost:9091/api api
 ```
 
 **Both `webui` and `api` are required** — the Dev UI's frontend calls the REST API for everything beyond serving its static page. Open `http://localhost:9091/ui/`, interact with the agent, and try the Trace view if the frontend exposes one (the backend routes for it are real — see the README — this repo doesn't claim the frontend UI was independently verified).
