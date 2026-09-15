@@ -21,6 +21,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.38.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/a2aproject/a2a-go/v2 v2.5.0 // indirect
+	github.com/anaskhan96/soup v1.2.5 // indirect
 	github.com/awalterschulze/gographviz v2.0.3+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
@@ -80,6 +81,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
+	github.com/trietmn/go-wiki v1.0.4 // indirect
 	github.com/v8tix/jsonx v1.0.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
