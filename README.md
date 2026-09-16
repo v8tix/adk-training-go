@@ -1,6 +1,6 @@
 # 🎓 ADK Training for Go 🚀
 
-Welcome! This repo is a **Go-language mirror** of [**Google ADK Training: From Zero to Hero**](https://github.com/mauripsale/doc-adk-training), a hands-on training course for the **Google Agent Development Kit (ADK)**. Every module here is built and verified against the real, official Go SDK (`google.golang.org/adk/v2`) — no Python required.
+Welcome! This repo is a **Go-language mirror** of [**Google ADK Training: From Zero to Hero**](https://mauripsale.github.io/doc-adk-training/docs/) ([source](https://github.com/mauripsale/doc-adk-training)), a hands-on training course for the **Google Agent Development Kit (ADK)**. Every module here is built and verified against the real, official Go SDK (`google.golang.org/adk/v2`) — no Python required.
 
 ## 🧭 What This Is (and Isn't)
 
@@ -12,7 +12,7 @@ Every technical claim in these docs is grounded in one of two things: the actual
 
 ## ✍️ Original Course & Attribution
 
-This project is an **Adapted Material** derivative of [doc-adk-training](https://github.com/mauripsale/doc-adk-training), created and maintained by [**Maurizio Ipsale**](https://www.linkedin.com/in/maurizioipsale/), a Google Cloud Authorized Trainer and Google Developer Expert (GDE) in AI and Cloud. All credit for the course design, module structure, and pedagogical approach goes to the original author.
+This project is an **Adapted Material** derivative of [doc-adk-training](https://github.com/mauripsale/doc-adk-training) — read the original course itself at **[mauripsale.github.io/doc-adk-training/docs](https://mauripsale.github.io/doc-adk-training/docs/)** — created and maintained by [**Maurizio Ipsale**](https://www.linkedin.com/in/maurizioipsale/), a Google Cloud Authorized Trainer and Google Developer Expert (GDE) in AI and Cloud. All credit for the course design, module structure, and pedagogical approach goes to the original author.
 
 The training curriculum content is licensed under [**Creative Commons Attribution 4.0 International (CC BY 4.0)**](https://creativecommons.org/licenses/by/4.0/) — see [`docs/LICENSE`](docs/LICENSE). This repo exercises that license by translating and adapting the curriculum into Go: **the docs, labs, and course structure in `docs/` are Adapted Material derived from the original Python course**, modified to teach the Go SDK instead. The original material is provided as-is, with no warranty, under the same license.
 
