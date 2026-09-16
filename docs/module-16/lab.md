@@ -91,10 +91,9 @@ Notice the summarizer's newsletter genuinely weaves in facts from *both* researc
 
 Since neither researcher has a real search tool, each backend fills the gap differently — confirmed live, not assumed. The local Ollama model, asked to "find headlines" with no way to actually search, honestly declined and offered alternative sources instead of inventing any. Gemini instead answered confidently from its own training data, producing plausible-sounding (but not actually live) headlines. Neither is wrong — this lab is about proving the graph's topology works, not about sourcing real news; module-12's `google_search` (Gemini-only) is the tool you'd reach for if live retrieval were the actual goal, but it can't share a `tools` list with these plain agents' custom-tool-shaped setup without the same `IncludeServerSideToolInvocations` flag from that module.
 
-### Having Trouble?
+### Troubleshooting
 
-- **The local model refuses to invent headlines:** that's a real, honest model behavior, not a bug — see the note above. Switch to `MODEL_TYPE=gemini` if you want a more filled-in example.
-- **The summarizer's instruction shows literal `{tech_news}` instead of real content:** confirm the two `OutputKey`s exactly match the placeholder names in `summarizer_instruction.md` — they're matched by exact string, not fuzzy.
+See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
 ### Lab Summary
 

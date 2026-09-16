@@ -89,10 +89,9 @@ Notice: the research agent's findings reflect real, current events beyond any tr
 
 `BuildCombinedAgent` in the same package shows the alternative this module's README covers: instead of two agents, one agent with `IncludeServerSideToolInvocations` set can use `google_search` and your custom tools together. Read `TestCombinedAgent_UsesSearchAndCustomTool_Gemini` in `agent_test.go` to see how that's proven — it checks for real `GroundingMetadata` *and* a real `FunctionResponse` from `format_research_notes` in the same conversation.
 
-### Having Trouble?
+### Troubleshooting
 
-- **`400 INVALID_ARGUMENT` mentioning `include_server_side_tool_invocations`:** you've built one agent with both `geminitool.GoogleSearch{}` and a custom tool, without setting that flag. Either set it (Step 3's approach) or split back into two agents (Step 1/2's approach) — never both a built-in and a custom tool in one agent's `Tools` with no `ToolConfig`.
-- **The local Ollama backend rejects the request:** this lab requires `MODEL_TYPE=gemini` — `cmd/research-assistant/main.go` forces this in code, so check your `GOOGLE_AI_STUDIO_API_KEY` is actually set if you see an authentication error instead.
+See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
 ### Lab Summary
 

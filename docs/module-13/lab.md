@@ -78,10 +78,9 @@ Run the same command, but type anything other than `yes` at the confirmation pro
 
 `internal/agents/financeagent/agent_test.go`'s `askInvestment` drives the exact same two-turn round-trip programmatically: send the request, find the `adk_request_confirmation` call, send back a synthesized `FunctionResponse`. `TestInvestment_LargeAmountApproved_{Ollama,Gemini}` asserts the conversation genuinely ends up authored by `supervisor` — not just that the tool returned "escalated" — since (per the README) the transfer takes one more model turn to actually happen.
 
-### Having Trouble?
+### Troubleshooting
 
-- **The confirmation prompt never appears:** confirm `functiontool.Config.RequireConfirmation` is actually `true` on the tool passed to `Tools`, not just documented in its description — the LLM's own instructions have no effect on this; it's a framework-level gate.
-- **Approving a large investment never reaches `supervisor`:** check `finance_instruction.md` explicitly tells the model to call the transfer tool itself on an "escalated" status — without that line, a model can narrate the escalation in text without ever calling `transfer_to_agent`, confirmed live during this module's own build.
+See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
 ### Lab Summary
 

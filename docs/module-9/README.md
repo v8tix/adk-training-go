@@ -44,14 +44,7 @@ Unlike module-7's vision agent and module-8's `google_search` agent, this module
 
 ### Going Further: Mixing a Built-in and a Custom Tool
 
-Attaching both `geminitool.GoogleSearch{}` and a custom function tool to the same agent fails by default:
-
-```
-400 ... Please enable tool_config.include_server_side_tool_invocations
-to use Built-in tools with Function calling.
-```
-
-Doing exactly that — setting `llmagent.Config.GenerateContentConfig.ToolConfig.IncludeServerSideToolInvocations = true` — makes the same mixed-tool agent work, correctly computing a real sum with both a built-in and a custom tool attached. Confirmed via `genai` source that this field is **Developer-API-only** (`"This field is not supported in Vertex AI"`) — the same simpler `GOOGLE_AI_STUDIO_API_KEY` path this repo already uses. This isn't required for this module's own lab (which uses only function tools) — it's a real, narrower option worth knowing about for later, when you do want to combine tool types in one agent.
+Attaching both `geminitool.GoogleSearch{}` and a custom function tool to the same agent fails by default — a real restriction from the Gemini API itself. A real, narrower workaround exists (`IncludeServerSideToolInvocations`), confirmed live to work; see [troubleshooting.md](./troubleshooting.md) for the exact error and the fix. This isn't required for this module's own lab (which uses only function tools) — it's worth knowing about for later, when you do want to combine tool types in one agent.
 
 ### Key Takeaways
 - `functiontool.New[TArgs, TResults](cfg, handler)` wraps a Go function as a tool — the parameter schema is inferred from `TArgs`'s type; the name and description are given explicitly.

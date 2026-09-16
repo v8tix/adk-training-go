@@ -63,10 +63,9 @@ No `GOOGLE_AI_STUDIO_API_KEY` needed — this runs entirely on the local Ollama 
 
 `internal/agents/factfinder/agent_test.go`'s `assertLooksUpWikipedia` checks the tool's own `FunctionResponse` — not just the final text — asserting `status == "success"` and the summary genuinely mentions the queried subject. This matters because a model could otherwise answer a well-known question like this one from its own training data without ever calling the tool.
 
-### Having Trouble?
+### Troubleshooting
 
-- **`unable to fetch the results`:** Wikimedia is rate-limiting the request. Confirm `gowiki.SetUserAgent(...)` is actually called (check `tools.go`'s `init()`) — a missing or generic User-Agent triggers exactly this error, confirmed live while building this module.
-- **The tool call still fails after setting the User-Agent:** wait a few seconds and retry — Wikimedia occasionally rate-limits shared or cloud IP ranges regardless of a correctly-set User-Agent, a separate, transient issue.
+See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
 ### Lab Summary
 

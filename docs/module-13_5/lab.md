@@ -85,10 +85,9 @@ Your favorite color is **blue**! 💙
 
 The second process never shared memory with the first — only the same Redis. That's the proof.
 
-### Having Trouble?
+### Troubleshooting
 
-- **`ask` doesn't remember what `set` stored:** confirm both invocations point at the same `REDIS_ADDR` and the same `appName`/`userID`/`sessionID` (`cmd/persistent-agent/main.go` hardcodes them as constants for this lab — a real application would derive them per-user).
-- **Tests fail to start a container:** confirm Docker is running (`docker info`). The tests skip, rather than fail, if Testcontainers genuinely can't reach Docker at all — a build or connection error inside a running Docker is a real problem to investigate.
+See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
 ### Lab Summary
 

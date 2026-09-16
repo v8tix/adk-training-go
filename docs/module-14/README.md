@@ -35,15 +35,7 @@ This is a real, confirmed finding, not an assumption: the pinned `google.golang.
 
 ### A Real Gotcha, Confirmed Live
 
-`github.com/trietmn/go-wiki`'s underlying Wikipedia API calls fail with a real error (`unable to fetch the results`) if you don't set a distinctive User-Agent — Wikimedia rate-limits the package's generic default, since it's shared by every user of the package. The fix is one line, called once before any request:
-
-```go
-func init() {
-    gowiki.SetUserAgent("your-app-name/1.0 (contact-info)")
-}
-```
-
-`internal/agents/factfinder/tools.go` calls this in its own package `init()`, confirmed live to be honored by later calls made from a different function — the same "set once, anywhere before first use" pattern a package-level fix like this always needs.
+`github.com/trietmn/go-wiki`'s underlying Wikipedia API calls fail with a real error if you don't set a distinctive User-Agent — Wikimedia rate-limits the package's generic default, since it's shared by every user of the package. `internal/agents/factfinder/tools.go` fixes this with one line in its own package `init()`; see [troubleshooting.md](./troubleshooting.md) for the exact error and the fix.
 
 ### `google_search` Still Can't Mix With It
 
