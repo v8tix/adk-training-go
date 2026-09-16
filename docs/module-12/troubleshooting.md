@@ -1,4 +1,4 @@
-# Troubleshooting: Module 12 (Go)
+# Troubleshooting: Module 12 (Go) 🔧
 
 ### `400 INVALID_ARGUMENT` mentioning `include_server_side_tool_invocations`
 
@@ -10,4 +10,4 @@
 
 **Cause:** this lab requires `MODEL_TYPE=gemini` — `cmd/research-assistant/main.go` forces this in code, since `google_search` only works on Gemini 2.0+ models.
 
-**Fix:** check your `GOOGLE_AI_STUDIO_API_KEY` is actually set if you see an authentication error instead of the expected local-backend rejection.
+**Fix:** double-check your `GOOGLE_AI_STUDIO_API_KEY` is actually set if you're seeing an authentication error instead of the expected local-backend rejection.

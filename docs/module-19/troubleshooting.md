@@ -1,6 +1,6 @@
-# Troubleshooting: Module 19 (Go)
+# Troubleshooting: Module 19 (Go) 🛠️
 
-### A task-mode sub-agent's response doesn't show up as its own event/author
+### A task-mode sub-agent's response doesn't show up as its own event/author 🤔
 
 **Symptom:** code inspecting the event stream (a test, a custom trace viewer) expects a `ModeTask`/`ModeSingleTurn` sub-agent's response to appear as a distinctly-authored, separately-final event — the way a `ModeChat` hand-off's transferred-to agent does — and finds it isn't there, or finds the coordinator itself credited as the author instead.
 
@@ -8,7 +8,7 @@
 
 **Fix:** don't assert on `event.Author` or `event.IsFinalResponse()` to detect a task/single-turn sub-agent's contribution. Assert on the actual visible content instead — concatenate every event's non-thought text for the turn and check for the information you expect to be present, the way this module's own `agent_test.go` does (checking the final plan mentions the airline the user gave, rather than checking which event "belongs" to which agent).
 
-### `OutputKey` on a task-mode agent gets overwritten before the task finishes
+### `OutputKey` on a task-mode agent gets overwritten before the task finishes ⚠️
 
 **Symptom:** code checks `event.Actions.StateDelta[someOutputKey]` expecting it to populate only once the task-mode agent finishes (calls `finish_task`), but the key is already present after the agent's very first, still-incomplete response (e.g. its clarifying question).
 

@@ -1,56 +1,56 @@
-# Lab 1 Challenge: Your First Interaction
+# Lab 1 Challenge: Your First Interaction 🗺️
 
 ## Goal
 
-The goal of this first lab is to familiarize yourself with the available resources for learning and using the Google Agent Development Kit (ADK) for Go. You won't be writing any code yet; instead, you'll be exploring the official documentation and code repository to understand where to find information and inspiration.
+No code today! This lab is all about getting your bearings: exploring the official ADK-for-Go docs and code repo so you know exactly where to look when you need answers later.
 
-## Step 1: Navigate the Official Documentation
+## Step 1: Navigate the Official Documentation 📖
 
-The official ADK-for-Go documentation is the most important resource you will use. It's your primary source for tutorials, guides, and API references.
+The official ADK-for-Go docs are your #1 resource — tutorials, guides, API references, all of it.
 
-1. **Open the Documentation:** In your web browser, go to `https://adk.dev/get-started/`.
-2. **Explore the "Get Started" Section:** Read through `Installation` and the Go-specific quickstart at `https://adk.dev/get-started/go/`. Note the `go get google.golang.org/adk/v2` install command and the Go 1.25+ requirement.
-3. **Browse the Graph and Workflow Sections:** Look at `https://adk.dev/graphs/` and `https://adk.dev/workflows/` — this is the heart of ADK 2.0, showing how you compose nodes and edges into a workflow.
+1. **Open the docs:** head to `https://adk.dev/get-started/`.
+2. **Check out "Get Started":** read `Installation` and the Go quickstart at `https://adk.dev/get-started/go/`. Note the `go get google.golang.org/adk/v2` command and the Go 1.25+ requirement.
+3. **Browse Graph and Workflow sections:** `https://adk.dev/graphs/` and `https://adk.dev/workflows/` — this is the heart of ADK 2.0, showing how nodes and edges come together into a workflow.
 
-**Key Takeaway:** The documentation is your best friend. Ensure you are looking at the **Go** pages specifically — Go has its own `Runner`-equivalent API (package `runner`), separate from the higher-level `cmd/launcher` app shell the quickstart samples use.
+💡 **Key takeaway:** make sure you're on the **Go** pages specifically. Go has its own `Runner`-equivalent API (package `runner`), separate from the higher-level `cmd/launcher` app shell the quickstart samples use.
 
-## Step 2: Discover the Official Code Repository
+## Step 2: Discover the Official Code Repository 💻
 
-The Go SDK is open source, with its own repository on GitHub. This repository contains the source code, issue tracker, and, most importantly, a wealth of examples.
+The Go SDK is open source with its own GitHub repo — source code, issue tracker, and a ton of examples.
 
-1. **Find the Repository:** Go to `github.com/google/adk-go`.
-2. **Verify the Version:** Check the latest release tags. You should see `v2.4.0` or higher.
-3. **Explore the `examples` directory:** The closest official runnable example is `examples/workflow/basic`.
-4. **Examine the Code:** Open `examples/workflow/basic/main.go` and read through it. Try to connect what you see to the concepts you skimmed in Step 1 (`workflow.NewFunctionNode`, `workflow.Chain`, `workflowagent.New`).
+1. **Find it:** `github.com/google/adk-go`.
+2. **Check the version:** look for release tag `v2.4.0` or higher.
+3. **Explore `examples`:** the closest official runnable example is `examples/workflow/basic`.
+4. **Read the code:** open `examples/workflow/basic/main.go`. Try connecting what you see to what you skimmed in Step 1 — `workflow.NewFunctionNode`, `workflow.Chain`, `workflowagent.New`.
 
-***Scavenger Hunt!***
-> Find the `examples/workflow/basic` sample and identify what actually runs the agent programmatically. Hint: this particular sample doesn't call the `runner` package directly — it goes through a higher-level app shell instead. Look at the last few lines of `main()`.
+🕵️ **Scavenger Hunt!**
+> Find the `examples/workflow/basic` sample and spot what actually runs the agent programmatically. Hint: this sample doesn't call `runner` directly — it goes through a higher-level app shell instead. Peek at the last few lines of `main()`.
 
-**Key Takeaway:** The official examples are the best place to find working code that you can learn from and adapt for your own projects.
+💡 **Key takeaway:** the official examples are your best source of working code to learn from (and steal for your own projects 😉).
 
-## Step 3: Understand the Community and Support Channels
+## Step 3: Find the Community 🙋
 
-1. **Issues Tab:** On `github.com/google/adk-go`, click on the "Issues" tab. This is where developers report bugs and request new features. Browsing through the issues can give you insight into the current state of the project and common problems users face.
-2. **Discussions Tab:** If available, the "Discussions" tab is a place for community conversations, questions, and sharing ideas.
+1. **Issues tab:** on `github.com/google/adk-go`, click "Issues" — bugs, feature requests, and a good read on the project's current state.
+2. **Discussions tab:** if it's there, it's the spot for community Q&A and idea-sharing.
 
-## Lab Summary
+## Lab Summary 🎉
 
-Congratulations, you've completed your first lab! You now know:
+Nice work, lab 1 done! You now know:
 
-* How to navigate the official ADK-for-Go documentation to find guides and references.
-* Where to find official, working Go code examples in the GitHub repository.
+* How to navigate the official ADK-for-Go docs.
+* Where to find official, working Go examples in the GitHub repo.
 * Where to look for community support and project updates.
 
-In the next module, you will use this knowledge to set up your own local Go development environment and prepare for building your first agent.
+Up next: setting up your own local Go dev environment so you're ready to build your first agent.
 
-## Self-Reflection Questions
+## Self-Reflection Questions 🤔
 
-- Why is it important to have official documentation and code examples for a framework like the ADK, especially for an SDK as new as Go's?
-- Based on the file names in the `examples` directory, what are some of the advanced capabilities you think the Go SDK might have?
-- How can community support channels like GitHub Issues and Discussions accelerate your learning process?
+- Why does having solid official docs and examples matter so much for a framework as new as the Go SDK?
+- Just from the file names in `examples`, what advanced capabilities do you think the Go SDK might have?
+- How can GitHub Issues and Discussions speed up your own learning?
 
 <hr/>
 
-### Looking for the solution?
+### Looking for the solution? 🔍
 
-Hint: look at `examples/workflow/basic/main.go` in `github.com/google/adk-go`, specifically the last few lines of `main()` — that's the `cmd/launcher` call you're looking for. (For running an agent directly from your own code instead of via a launcher-built app, see package `runner` — `runner.NewInMemory` + `Run`.)
+Hint: check `examples/workflow/basic/main.go` in `github.com/google/adk-go`, specifically the last few lines of `main()` — that's the `cmd/launcher` call you're after. (Want to run an agent directly from your own code instead of via a launcher-built app? Look at package `runner` — `runner.NewInMemory` + `Run`.)

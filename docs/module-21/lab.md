@@ -1,8 +1,8 @@
-# Lab 21: Building a Distributed Research System (Go)
+# Lab 21: Building a Distributed Research System (Go) 🌍
 
 ## Goal
 
-Build a genuinely distributed multi-agent system: a standalone `research_specialist` server and a separate `a2a_orchestrator` client that delegates to it over real HTTP, running as two independent processes in two terminals — matching Python's own two-terminal exercise exactly.
+Let's build a *genuinely* distributed multi-agent system: a standalone `research_specialist` server and a separate `a2a_orchestrator` client that delegates to it over real HTTP, running as two independent processes in two terminals — matching Python's own two-terminal exercise exactly.
 
 ### The Architecture
 
@@ -30,7 +30,7 @@ func BuildRootAgent(llmModel model.LLM) (agent.Agent, error) {
 }
 ```
 
-A plain `llmagent` — nothing about it knows it will be exposed over the network. Confirmed live this lab: no special "ignore internal transition messages" instruction section was needed for a straightforward research request like this one; the specialist answered coherently with no sign of orchestrator-context confusion. (Python's own README recommends such a section as a general best practice for more complex or multi-turn scenarios — worth keeping in mind if you extend this lab.)
+Just a plain `llmagent` — it has no idea it's about to be exposed over the network. Confirmed live this lab: no special "ignore internal transition messages" instruction section was needed for a straightforward research request like this one; the specialist answered coherently with zero signs of orchestrator-context confusion. (Python's own README recommends such a section as a general best practice for more complex or multi-turn scenarios — worth keeping in mind if you extend this lab.)
 
 ### Step 2: The Server (`cmd/research-specialist-server`)
 
@@ -40,7 +40,7 @@ l := universal.NewLauncher(web.NewLauncher(a2a.NewLauncher()))
 l.Execute(ctx, config, os.Args[1:])
 ```
 
-Just the standard launcher, composed with the SDK's own `a2a` sublauncher — the same `universal.NewLauncher` shape every other `cmd/` program in this course uses, not a hand-rolled server.
+Just the standard launcher, composed with the SDK's own `a2a` sublauncher — the same `universal.NewLauncher` shape every other `cmd/` program in this course uses, not a hand-rolled server. Nice and consistent! 👍
 
 ### Step 3: The Coordinator (`internal/agents/a2aorchestrator`)
 
@@ -65,9 +65,9 @@ func BuildRootAgent(llmModel model.LLM, specialistBaseURL string) (agent.Agent, 
 }
 ```
 
-`specialistBaseURL` comes from `RESEARCH_SPECIALIST_URL` (default `http://localhost:8001`) in `cmd/a2a-orchestrator`, which keeps the standard console/web/api launcher — from its own perspective, `research_specialist` is just another `SubAgents` entry.
+`specialistBaseURL` comes from `RESEARCH_SPECIALIST_URL` (default `http://localhost:8001`) in `cmd/a2a-orchestrator`, which keeps the standard console/web/api launcher — from its own point of view, `research_specialist` is just another `SubAgents` entry.
 
-### Step 4: Run Both, In Two Real Terminals
+### Step 4: Run Both, In Two Real Terminals 🖥️🖥️
 
 **Terminal 1 — the specialist server:**
 
@@ -121,9 +121,9 @@ noisy intermediate-scale quantum (NISQ) era toward practical, error-corrected qu
 systems.
 ```
 
-Two separate `go run` processes, one real network call between them.
+Two separate `go run` processes, one real network call between them. Pretty cool, right? 🤩
 
-### Step 5: A Real, Confirmed Test — and a Genuine Bug It Caught in Itself
+### Step 5: A Real, Confirmed Test — and a Genuine Bug It Caught in Itself 🐛
 
 `internal/agents/a2aorchestrator/agent_test.go`'s live test starts a genuine HTTP server on an OS-assigned port, exactly like the real `cmd/research-specialist-server`:
 
@@ -135,7 +135,7 @@ baseURL := "http://" + lis.Addr().String()
 rootAgent, _ := BuildRootAgent(llmModel, baseURL)
 ```
 
-An earlier version of this test only checked `event.Author == "research_specialist"` — and independent review caught that this proves nothing: every failure path in `remoteagent/v2` (an unresolvable agent card, a failed RPC) synthesizes its *own* error event stamped with that exact same author. The test would have passed even if the specialist were completely unreachable. The fix checks the actual outcome instead:
+Here's a fun (well, humbling) story: an earlier version of this test only checked `event.Author == "research_specialist"` — and independent review caught that this proves *nothing*. Every failure path in `remoteagent/v2` (an unresolvable agent card, a failed RPC) synthesizes its *own* error event stamped with that exact same author. The test would have passed even if the specialist were completely unreachable! 😅 The fix checks the actual outcome instead:
 
 ```go
 if event.Author != "research_specialist" {
@@ -147,21 +147,21 @@ if event.ErrorMessage != "" {
 // ...accumulate event.Content's real text...
 ```
 
-A companion test, `TestA2AOrchestrator_UnreachableSpecialist_Gemini`, points the orchestrator at an address nothing is listening on and confirms the resulting event *does* carry an error — proving the fixed assertion genuinely discriminates success from failure, which the original, author-only version could not.
+A companion test, `TestA2AOrchestrator_UnreachableSpecialist_Gemini`, points the orchestrator at an address nothing is listening on and confirms the resulting event *does* carry an error — proving the fixed assertion genuinely tells success from failure, something the original author-only version simply couldn't do.
 
 ### Troubleshooting
 
 See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
-### Lab Summary
+### Lab Summary 🎉
 
-You built a genuinely distributed multi-agent system: a real HTTP A2A service using this course's own standard launcher composed with the SDK's `a2a` sublauncher, a proxy node reaching it (`remoteagent/v2.NewA2A`), and a test that starts a real network server and checks for genuine, error-free content — not just an event author that turned out not to prove anything on its own.
+You built a genuinely distributed multi-agent system: a real HTTP A2A service using this course's own standard launcher composed with the SDK's `a2a` sublauncher, a proxy node reaching it (`remoteagent/v2.NewA2A`), and a test that starts a real network server and checks for genuine, error-free content — not just an event author that turned out not to prove anything on its own. Solid work! 💪
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - What are the main benefits of running `research_specialist` as a separate service instead of a local sub-agent — and what did it cost you to get there (extra files, an extra process, a URL to configure)?
 - Why is `event.Author == "research_specialist"` not enough, by itself, to prove a remote call succeeded? What's the smallest change to a test that would restore that false confidence?
 - How does the agent card at a well-known URL enable a decoupled architecture? What would the orchestrator need instead if that discovery mechanism didn't exist?
 
 <hr/>
 
-> **Coming from Python?** Python's `to_a2a(root_agent, port=8001)` bundles server construction into one call; this lab's `universal.NewLauncher(web.NewLauncher(a2a.NewLauncher()))` is the direct equivalent, run as `web --port 8001 a2a -a2a_agent_url ...`. `RemoteA2aAgent(agent_card=url, use_legacy=False)` maps onto `remoteagentv2.NewA2A(A2AConfig{AgentCardProvider: NewAgentCardProvider(url)})`; this lab's own `remoteagent/v2` package has no `use_legacy` flag to set since it's already the actively maintained implementation.
+> **Coming from Python?** 🐍 Python's `to_a2a(root_agent, port=8001)` bundles server construction into one call; this lab's `universal.NewLauncher(web.NewLauncher(a2a.NewLauncher()))` is the direct equivalent, run as `web --port 8001 a2a -a2a_agent_url ...`. `RemoteA2aAgent(agent_card=url, use_legacy=False)` maps onto `remoteagentv2.NewA2A(A2AConfig{AgentCardProvider: NewAgentCardProvider(url)})`; this lab's own `remoteagent/v2` package has no `use_legacy` flag to set since it's already the actively maintained implementation.

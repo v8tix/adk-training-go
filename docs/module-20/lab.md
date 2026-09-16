@@ -1,8 +1,8 @@
-# Lab 20: Building an Essay Refinement System (Go)
+# Lab 20: Building an Essay Refinement System (Go) ✍️
 
 ## Goal
 
-Build a self-improving system: a writer produces a draft, then a critic/refiner loop iterates on it — capped at 3 iterations — until the critic approves.
+Let's build a self-improving system! A writer drafts something, then a critic/refiner loop keeps polishing it — capped at 3 iterations — until the critic gives its stamp of approval. ✅
 
 ### The Architecture
 
@@ -14,7 +14,7 @@ flowchart TD
     workflow -.->|"imperative RunNode call,<br/>looped up to maxIterations"| refiner[refiner]
 ```
 
-### Step 1: The Three Agents
+### Step 1: The Three Agents 🧑‍🤝‍🧑
 
 ```go
 writer, _ := llmagent.New(llmagent.Config{
@@ -31,9 +31,9 @@ refiner, _ := llmagent.New(llmagent.Config{
 })
 ```
 
-Plain-language instructions, no `{key}` template placeholders — a node's `RunNode` input becomes that turn's content directly, it doesn't populate instruction templates (those only resolve from session state).
+Plain-language instructions — no `{key}` template placeholders here. A node's `RunNode` input becomes that turn's content directly; it doesn't populate instruction templates (those only resolve from session state).
 
-### Step 2: The Iterative Orchestrator
+### Step 2: The Iterative Orchestrator 🔄
 
 ```go
 const maxIterations = 3
@@ -67,9 +67,9 @@ refinementWorkflow := workflow.NewDynamicNode("refinement_workflow",
 )
 ```
 
-Nothing here is a framework feature — it's an initial `RunNode` call, then an ordinary Go `for` loop with an early `break`.
+There's no framework magic in here — just an initial `RunNode` call, then an ordinary Go `for` loop with an early `break`. That's it. 🙂
 
-### Step 3: Assemble the Graph
+### Step 3: Assemble the Graph 🧩
 
 ```go
 edges := []workflow.Edge{
@@ -81,7 +81,7 @@ rootAgent, _ := workflowagent.New(workflowagent.Config{Name: "EssayRefiner", Edg
 
 One edge — the whole refinement loop lives inside `refinement_workflow`'s own body.
 
-### Step 4: Run and Verify
+### Step 4: Run and See It Live 🚀
 
 ```bash
 go run ./cmd/essay-refiner console
@@ -105,11 +105,11 @@ seat—a forgotten treasure inside a decaying train car—he curled into a tight
 soft purrs claiming the quiet subterranean kingdom as his own.APPROVED
 ```
 
-Notice the whole iteration is visible: the draft, the critic's feedback (asking for the word "treasure"), the refined story that incorporates it, and the critic's final "APPROVED" — all printed back to back, since the console streams every real chat turn as it happens. The very last thing printed is "APPROVED," not the story — the polished essay is visible earlier in the same stream.
+Notice the whole iteration plays out right in front of you: the draft, the critic's feedback (asking for the word "treasure"), the refined story that weaves it in, and the critic's final "APPROVED" — all printed back to back, since the console streams every real chat turn as it happens. The very last thing printed is "APPROVED," not the story itself — the polished essay is sitting right there earlier in the same stream. 👀
 
-### Step 5: A Real, Confirmed Test
+### Step 5: A Real, Confirmed Test 🧪
 
-`agent_test.go`'s live test doesn't look for the answer in the visible chat stream at all — it reads the dynamic node's own terminal event directly:
+`agent_test.go`'s live test doesn't bother looking for the answer in the visible chat stream at all — it reads the dynamic node's own terminal event directly:
 
 ```go
 for event, runErr := range r.Run(ctx, userID, sessionID, msg, agent.RunConfig{}) {
@@ -123,23 +123,23 @@ for event, runErr := range r.Run(ctx, userID, sessionID, msg, agent.RunConfig{})
 }
 ```
 
-This is the one reliable signal for the loop's real return value, confirmed live: every other event in the stream (the writer's draft, the critic's verdicts, the refiner's rewrites) has real `Content` and `Output: nil`; only the workflow's own terminal event has `Content: nil` and `Output` set to the final story.
+This is the one reliable signal for the loop's real return value — confirmed live: every other event in the stream (the writer's draft, the critic's verdicts, the refiner's rewrites) has real `Content` and `Output: nil`; only the workflow's own terminal event has `Content: nil` and `Output` set to the final story.
 
-The test then checks the final story literally contains the word "treasure" — the exact thing the critic requires before approving, which the initial draft has no reason to include on its own. This proves the critic/refiner loop genuinely ran and genuinely incorporated the feedback, not just that some story came back.
+The test then checks the final story literally contains the word "treasure" — exactly what the critic requires before it'll approve, and something the initial draft has zero reason to include on its own. That proves the critic/refiner loop genuinely ran and genuinely incorporated the feedback — not just that some story came back. 💪
 
 ### Troubleshooting
 
-See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
+Hit a snag? See [troubleshooting.md](./troubleshooting.md).
 
-### Lab Summary
+### Lab Summary 🎉
 
-You built a real cyclic workflow: a plain Go `for` loop inside a dynamic node's body, calling `workflow.RunNode` repeatedly with an early-exit condition and a hard safety cap — proven live, with a test that reads the loop's actual return value from the one event that actually carries it.
+You built a real cyclic workflow: a plain Go `for` loop inside a dynamic node's body, calling `workflow.RunNode` repeatedly with an early-exit condition and a hard safety cap — proven live, with a test that reads the loop's actual return value from the one event that actually carries it. Nice work!
 
-### Self-Reflection Questions
-- Why does the test check `event.Author == "EssayRefiner"` instead of just capturing the last piece of visible chat text? What would have gone wrong with the naive approach, and did it actually happen during this lab's own testing?
-- What would happen if the critic's own instruction never produced the literal string "APPROVED" — would the loop error out, or would it do something else? What controls that?
-- How would you modify this loop to keep every intermediate draft, not just the final one? Where would you store them?
+### Self-Reflection Questions 🤔
+- Why does the test check `event.Author == "EssayRefiner"` instead of just grabbing the last piece of visible chat text? What would've gone wrong with the naive approach — and did it actually happen during this lab's own testing?
+- What would happen if the critic's own instruction never produced the literal string "APPROVED"? Would the loop error out, or do something else? What controls that?
+- How would you modify this loop to keep *every* intermediate draft, not just the final one? Where would you stash them?
 
 <hr/>
 
-> **Coming from Python?** Python's `for i in range(5): ... await ctx.run_node(...)` inside an `@node(rerun_on_resume=True)` function maps directly onto this lab's own Go `for` loop calling `workflow.RunNode` inside a `workflow.NewDynamicNode` — the exact mechanism module-18 already established, `rerun_on_resume`'s Go equivalent already handled automatically. Python's lab notes `ctx.run_node()`'s second argument is positional, not a keyword; Go's `RunNode` has no keyword arguments at all, so that specific caution doesn't apply here.
+> **Coming from Python?** 🐍 Python's `for i in range(5): ... await ctx.run_node(...)` inside an `@node(rerun_on_resume=True)` function maps directly onto this lab's own Go `for` loop calling `workflow.RunNode` inside a `workflow.NewDynamicNode` — the exact mechanism module-18 already set up, `rerun_on_resume`'s Go equivalent already handled automatically. Python's lab notes `ctx.run_node()`'s second argument is positional, not a keyword; Go's `RunNode` has no keyword arguments at all, so that specific caution doesn't apply here.

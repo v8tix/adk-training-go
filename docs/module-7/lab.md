@@ -1,4 +1,4 @@
-# Lab 7: Building a Visual Product Catalog Analyzer (Go)
+# Lab 7: Building a Visual Product Catalog Analyzer (Go) 📸
 
 ## Goal
 
@@ -6,11 +6,11 @@ Build a vision-capable agent that analyzes a product photo and writes a marketin
 
 ## Lab Tasks
 
-### 1. Read `internal/agents/visualcatalog/agent.go`
+### 1. Read `internal/agents/visualcatalog/agent.go` 📖
 
 Same shape as `internal/agents/supportanalyzer` (module-6) — `BuildRootAgent(llmModel)` resolves its own prompt internally — but simpler: no `OutputSchema`/`OutputKey`, since this agent returns plain marketing copy, not structured JSON.
 
-### 2. Read `cmd/visual-catalog/main.go`
+### 2. Read `cmd/visual-catalog/main.go` 📖
 
 Three things to notice:
 
@@ -18,7 +18,7 @@ Three things to notice:
 - **`runOnce`-style helper, but with an explicit session first.** `analyzeProduct` calls `sessionSvc.Create(...)` before `r.Run(...)` — unlike every prior module's `runner.NewInMemory`-based helper, which never needed this because `NewInMemory` auto-creates sessions.
 - **The image itself:** `os.ReadFile(imagePath)` + `genai.NewPartFromBytes(imageBytes, "image/jpeg")`, combined with a text part via `genai.NewContentFromParts`.
 
-### 3. Run it
+### 3. Run it ▶️
 
 ```bash
 go run ./cmd/visual-catalog
@@ -45,9 +45,9 @@ those who appreciate both exceptional sound quality and timeless design...
 Elevate your daily productivity and creative workflows with the LAPTOP-02...
 ```
 
-Two distinct, accurate descriptions, each correctly identifying the real product in its real photo — headphones described as headphones, a laptop described as a laptop, with specific visual details (the coiled cable, the wooden desk, the laptop's chassis) pulled from the actual images, not generic boilerplate.
+Two distinct, accurate descriptions, each correctly identifying the real product in its real photo — headphones described as headphones, a laptop described as a laptop, with specific visual details (the coiled cable, the wooden desk, the laptop's chassis) pulled from the actual images, not generic boilerplate. Nice! 🎉
 
-### 4. See the session requirement fail, on purpose
+### 4. See the session requirement fail, on purpose 💥
 
 Try commenting out the `sessionSvc.Create(...)` call in `analyzeProduct` and re-run. You should see the real, confirmed error this module is about:
 
@@ -55,9 +55,9 @@ Try commenting out the `sessionSvc.Create(...)` call in `analyzeProduct` and re-
 session not found: "sess_HEADPHONES-01"
 ```
 
-Put the `Create` call back before moving on — this is meant to be observed, not left broken.
+Put the `Create` call back before moving on — this is meant to be observed, not left broken. 😄
 
-### 5. Bonus (outside this course's ADK-SDK lesson): confirm the gap is in the SDK, not the model
+### 5. Bonus (outside this course's ADK-SDK lesson): confirm the gap is in the SDK, not the model 🔍
 
 ```bash
 go run ./cmd/visual-catalog-local
@@ -79,7 +79,7 @@ A silver laptop sits open at the center of a light wooden desk...
 
 This isn't a second way to do the real lab — it bypasses `llmagent`/`runner` entirely, calling Ollama directly (via [kawa](https://github.com/v8tix/kawa), not the ADK SDK). It exists only to prove step 1's claim from the other side: the local model server can see images just fine; the gap really is in `model/openaimodel`.
 
-## Self-Reflection Questions
+## Self-Reflection Questions 🤔
 - Why did `cmd/support-analyzer-runner` (module-6) never need an explicit session-creation call, but `cmd/visual-catalog` does?
 - This module's local-inference limitation is specifically that the Go SDK's client can't *send* an image — the model server itself handles the same image fine when called directly. Why does that distinction matter if you were deciding whether to file a bug against the SDK versus against Ollama?
 - If you wanted to analyze a PDF document instead of an image, what would you change in `analyzeProduct` — the `Part` construction, the MIME type, or both?
@@ -87,6 +87,6 @@ This isn't a second way to do the real lab — it bypasses `llmagent`/`runner` e
 
 <hr/>
 
-### Looking for the solution?
+### Looking for the solution? 🔍
 
 Hint: read `internal/agents/visualcatalog/agent.go` and `cmd/visual-catalog/main.go`'s `analyzeProduct` function for the real lesson — that's the whole ADK-based mechanism, end to end. For the bonus, `internal/agents/visualcatalog/local_vision.go`'s `DescribeImageLocally` and `cmd/visual-catalog-local/main.go`.

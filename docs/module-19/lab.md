@@ -1,8 +1,8 @@
-# Lab 19: Building a Collaborative Travel Team (Go)
+# Lab 19: Building a Collaborative Travel Team (Go) ✈️
 
 ## Goal
 
-Build a Travel Planning Team: a coordinator delegates to a weather specialist (`single_turn`) and a flight booker (`task`, allowing back-and-forth about preferences), then presents one combined plan.
+Let's build a Travel Planning Team: a coordinator delegates to a weather specialist (`single_turn`) and a flight booker (`task`, allowing back-and-forth about preferences), then presents one combined plan. 🧳
 
 ### The Team's Shape
 
@@ -13,7 +13,7 @@ flowchart TD
     Coordinator -->|"ModeTask:<br/>multi-turn, returns on finish_task"| Flight[flight_booker]
 ```
 
-### Step 1: The Weather Specialist — `ModeSingleTurn`
+### Step 1: The Weather Specialist — `ModeSingleTurn` ☀️
 
 ```go
 weatherChecker, _ := llmagent.New(llmagent.Config{
@@ -25,7 +25,7 @@ weatherChecker, _ := llmagent.New(llmagent.Config{
 
 One call, no back-and-forth, immediate return to the coordinator.
 
-### Step 2: The Flight Booker — `ModeTask`
+### Step 2: The Flight Booker — `ModeTask` ✈️
 
 ```go
 flightBooker, _ := llmagent.New(llmagent.Config{
@@ -37,7 +37,7 @@ flightBooker, _ := llmagent.New(llmagent.Config{
 
 `flight_booker` can ask the user a question and wait for the answer across as many turns as it needs — the framework returns control to the coordinator automatically the moment the model calls the injected `finish_task` tool, not before.
 
-### Step 3: The Coordinator — No `Mode` Needed
+### Step 3: The Coordinator — No `Mode` Needed 🧭
 
 ```go
 travelPlanner, _ := llmagent.New(llmagent.Config{
@@ -49,7 +49,7 @@ travelPlanner, _ := llmagent.New(llmagent.Config{
 
 No `Mode` field set — the coordinator is the root, reachable directly by the user, not a sub-agent being delegated to.
 
-### Step 4: Run and Test
+### Step 4: Run and Test 🚀
 
 ```bash
 go run ./cmd/travel-planner console
@@ -82,9 +82,9 @@ Agent -> Here is your completed travel plan for your trip to Tokyo next week:
 Have a wonderful trip to Tokyo! Safe travels!
 ```
 
-Notice there's no separate "hand-off" moment visible to the user — `flight_booker` asked its question, the user answered on the next turn, and the combined plan came right back, all without any orchestration code written for this module.
+Notice there's no separate "hand-off" moment visible to the user — `flight_booker` asked its question, the user answered on the next turn, and the combined plan came right back, all without any orchestration code written for this module. Smooth! 😌
 
-### Step 5: A Real, Confirmed Test — and a Genuine Discovery
+### Step 5: A Real, Confirmed Test — and a Genuine Discovery 🔍
 
 The first version of this lab's test asserted on `event.Author`/`IsFinalResponse()`, expecting `flight_booker`'s clarifying question to appear as its own distinctly-authored, non-final event. That assertion was wrong — confirmed live: because task-mode dispatch is a function call, not a hand-off, `flight_booker`'s question arrived folded directly into `travel_planner`'s own outward response in the same turn. The working test instead checks the actual, externally observable content:
 
@@ -97,21 +97,21 @@ turn2Text, _ := runTurn(ctx, r, "test_user", "test_session", "United, morning fl
 // answer, finished, and its result reached the coordinator's own synthesis
 ```
 
-This is a stronger, more honest test than asserting on internal event plumbing: it proves the automatic hand-back genuinely carried real information forward, not just that some event fired.
+This is a stronger, more honest test than asserting on internal event plumbing: it proves the automatic hand-back genuinely carried real information forward, not just that some event fired. 💪
 
-### Troubleshooting
+### Troubleshooting 🛠️
 
 See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
-### Lab Summary
+### Lab Summary 🎉
 
 You built a real collaborative team: `ModeSingleTurn` for a quick utility lookup, `ModeTask` for an interactive sub-task with automatic return, and a coordinator with no orchestration code of its own — proven live across a genuine two-turn conversation, with a test that checks the automatic hand-back actually carried the user's new information forward.
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - Why would you use `ModeSingleTurn` instead of `ModeTask` for a lookup that never needs to ask the user anything?
 - This lab's test doesn't check which specific event was `travel_planner`'s vs. `flight_booker`'s. Why not, and what did checking the wrong thing look like when this lab's own first test attempt got it wrong?
 - How would you extend `travel_planner` with a third specialist — say, a hotel booker — also in `ModeTask`? What would change in `agent.go`, and what wouldn't?
 
 <hr/>
 
-> **Coming from Python?** Python's lab requires `rerun_on_resume=True` on all three agents, warning that omitting it on any one raises a `ValueError`. This Go lab needs no equivalent field anywhere — confirmed live, the same two-turn conversation (a question, then an automatic return with the combined plan) works with zero resumability configuration. Python's README also describes the framework-injected tool as `request_task_flight_booker`; this lab's own testing confirmed Go names it just `flight_booker` — the agent's own name, nothing more.
+> **Coming from Python?** 🐍 Python's lab requires `rerun_on_resume=True` on all three agents, warning that omitting it on any one raises a `ValueError`. This Go lab needs no equivalent field anywhere — confirmed live, the same two-turn conversation (a question, then an automatic return with the combined plan) works with zero resumability configuration. Python's README also describes the framework-injected tool as `request_task_flight_booker`; this lab's own testing confirmed Go names it just `flight_booker` — the agent's own name, nothing more.

@@ -1,10 +1,10 @@
-# Lab 15: Designing a Multi-Agent System (Go)
+# Lab 15: Designing a Multi-Agent System (Go) 📝
 
 ## Goal
 
-Before writing any code, design a simple two-agent system on paper. This lab is entirely a design exercise — you'll implement it for real in the next module.
+Before writing any code, let's design a simple two-agent system on paper. This lab is entirely a design exercise — you'll build the real thing in the next module.
 
-Our system is a "Greeting Router": a router agent and one specialist that knows how to greet in Spanish.
+Our system: a "Greeting Router" — a router agent and one specialist that knows how to greet in Spanish.
 
 ### The Scenario
 
@@ -12,7 +12,7 @@ A monolithic agent handling greetings in every language would need an unmanageab
 
 ---
 
-### Step 1: Define the Roles and Responsibilities
+### Step 1: Define the Roles and Responsibilities 🎭
 
 #### Agent 1: The Router
 
@@ -40,7 +40,7 @@ A monolithic agent handling greetings in every language would need an unmanageab
 
 ---
 
-### Step 2: Map the Interaction Flow
+### Step 2: Map the Interaction Flow 🗺️
 
 ```mermaid
 flowchart TD
@@ -50,7 +50,7 @@ flowchart TD
     Router -->|"no specialist matches<br/>(e.g. French)"| Direct["router answers directly"]
 ```
 
-#### Flow 1: Supported Language (Spanish)
+#### Flow 1: Supported Language (Spanish) ✅
 
 1. **User input:** "Can you greet me in Spanish?" reaches the router via `runner.Run`.
 2. **Router reasons:** the framework has already appended a `transfer_to_agent` tool to the router's request, with instructions built from the Spanish greeter's own `Description` (confirmed in module-13: `internal/llminternal/agent_transfer.go`'s `AgentTransferRequestProcessor` does this automatically, since the router has `SubAgents` set).
@@ -59,7 +59,7 @@ flowchart TD
 5. **Specialist executes:** the Spanish greeter's own instruction takes over.
 6. **Specialist responds:** something like `"¡Hola, mucho gusto!"`.
 
-#### Flow 2: Unsupported Language
+#### Flow 2: Unsupported Language ❌
 
 1. **User input:** "Can you greet me in French?"
 2. **Router reasons:** it sees no registered specialist whose description matches "French."
@@ -67,7 +67,7 @@ flowchart TD
 
 ---
 
-### Step 3: Plan the File Structure
+### Step 3: Plan the File Structure 🏗️
 
 Following this repo's own convention (confirmed against `financeagent`, which builds both `finance_agent` and its `supervisor` sub-agent inline in one file, reserving a second file only for tool-handler logic — the same shape `calculator` and `factfinder` use too):
 
@@ -83,7 +83,7 @@ adk-training-go/
     └── main.go                <-- standard launcher wiring
 ```
 
-`agent.go` will need to:
+`agent.go` needs to:
 1. Build the Spanish greeter agent.
 2. Build the router with `SubAgents: []agent.Agent{spanishGreeter}`.
 
@@ -91,15 +91,15 @@ Both in the same file — this system has no custom tool-handler logic of its ow
 
 No `Workflow`/`workflowagent` file is planned — module-13 already confirmed a plain `llmagent` with `SubAgents` is sufficient for this pattern.
 
-### Lab Summary
+### Lab Summary 🎉
 
-You designed a two-agent system on paper: specialist and router roles, the description that drives delegation, both interaction flows, and the Go file layout the next module will actually build.
+You designed a two-agent system on paper: specialist and router roles, the description that drives delegation, both interaction flows, and the Go file layout the next module will actually build. Nicely done!
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - What is the single most important piece of information that lets the router decide which specialist to delegate to?
 - How would you extend this design to support French? What new files or registrations would you need?
-- This design uses LLM-driven delegation (the model calling `transfer_to_agent` itself). What would change if the router instead called the Spanish greeter like a function and got a result back, rather than handing off control permanently? (You haven't built that pattern yet — this course's own later module on `AgentTool` covers it. For now, just consider the difference between a one-way handoff and a call-and-return.)
+- This design uses LLM-driven delegation (the model calling `transfer_to_agent` itself). What would change if the router instead called the Spanish greeter like a function and got a result back, rather than handing off control permanently? (You haven't built that pattern yet — a later module on `AgentTool` covers it. For now, just consider the difference between a one-way handoff and a call-and-return.)
 
 <hr/>
 
-> **Coming from Python?** Python's lab plans `agent.py` (the router + `Workflow`) and `spanish_greeter_agent.py` (the specialist) as two separate Python modules. This plan builds both agents inline in one Go file instead, matching how `financeagent` already builds its own router-and-specialist pair — and skips the `Workflow` wrapper entirely, since Python's own material already notes it isn't required here either.
+> **Coming from Python?** 🐍 Python's lab plans `agent.py` (the router + `Workflow`) and `spanish_greeter_agent.py` (the specialist) as two separate Python modules. This plan builds both agents inline in one Go file instead, matching how `financeagent` already builds its own router-and-specialist pair — and skips the `Workflow` wrapper entirely, since Python's own material already notes it isn't required here either.

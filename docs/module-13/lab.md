@@ -1,4 +1,4 @@
-# Lab 13: Building a Secure Finance Agent with HITL and Actions (Go)
+# Lab 13: Building a Secure Finance Agent with HITL and Actions (Go) 💰
 
 ## Goal
 
@@ -6,7 +6,7 @@ Build a finance agent that requires human confirmation before every investment, 
 
 ### Prerequisites
 
-Either backend works — no `GOOGLE_AI_STUDIO_API_KEY` requirement, confirmed live this module (both Ollama and Gemini genuinely support the confirmation round-trip and dynamic transfer).
+Either backend works — no `GOOGLE_AI_STUDIO_API_KEY` requirement, confirmed live this module (both Ollama and Gemini genuinely support the confirmation round-trip and dynamic transfer). 🎉
 
 ### Step 1: The Investment Tool
 
@@ -26,7 +26,7 @@ func executeInvestment(ctx agent.Context, args ExecuteInvestmentArgs) (ExecuteIn
 
 Read it alongside `agent.go`'s `BuildRootAgent`, which wraps it with `functiontool.Config{RequireConfirmation: true}` and attaches a `supervisor` sub-agent via `SubAgents`.
 
-### Step 2: Run It Interactively
+### Step 2: Run It Interactively 🖥️
 
 ```bash
 go run ./cmd/finance-agent console
@@ -68,13 +68,13 @@ this amount, and the trade is now cleared to proceed. The finance_agent will exe
 investment on your behalf.
 ```
 
-Notice the confirmation prompt in both cases — no code in `cmd/finance-agent/main.go` handles it; `cmd/launcher/console` does that automatically.
+Notice the confirmation prompt shows up in both cases automatically — no code in `cmd/finance-agent/main.go` handles it; `cmd/launcher/console` does that for you. 🙌
 
-### Step 3: Test the Reject Path
+### Step 3: Test the Reject Path 🚫
 
-Run the same command, but type anything other than `yes` at the confirmation prompt (e.g. `no`). **Observe:** the agent reports the investment was *not* processed, and — thanks to an explicit instruction in `finance_instruction.md` — it does not escalate to the supervisor. A rejection is final.
+Run the same command, but type anything other than `yes` at the confirmation prompt (e.g. `no`). **Observe:** the agent reports the investment was *not* processed, and — thanks to an explicit instruction in `finance_instruction.md` — it does not escalate to the supervisor. A rejection is final. Done deal.
 
-### Step 4: Read the Automated Tests
+### Step 4: Read the Automated Tests 🧪
 
 `internal/agents/financeagent/agent_test.go`'s `askInvestment` drives the exact same two-turn round-trip programmatically: send the request, find the `adk_request_confirmation` call, send back a synthesized `FunctionResponse`. `TestInvestment_LargeAmountApproved_{Ollama,Gemini}` asserts the conversation genuinely ends up authored by `supervisor` — not just that the tool returned "escalated" — since (per the README) the transfer takes one more model turn to actually happen.
 
@@ -82,15 +82,15 @@ Run the same command, but type anything other than `yes` at the confirmation pro
 
 See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
-### Lab Summary
+### Lab Summary 🎉
 
-You built a finance agent that pauses for human approval before every investment and dynamically escalates large ones to a supervisor — using `RequireConfirmation` and `ctx.Actions().TransferToAgent`, with no `Workflow` wrapper needed.
+You built a finance agent that pauses for human approval before every investment and dynamically escalates large ones to a supervisor — using `RequireConfirmation` and `ctx.Actions().TransferToAgent`, with no `Workflow` wrapper needed. Nice work!
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - Why must `RequireConfirmation` be enforced by the framework rather than left to the LLM's own instructions?
 - The escalation transfer takes one extra model turn to actually happen. What would go wrong if your tests assumed it happened on the very next event instead?
 - What would you add to `finance_instruction.md` if you wanted the agent to also confirm *what* is being invested in, not just the amount?
 
 <hr/>
 
-> **Coming from Python?** Python's lab has you complete two `TODO`s: wrapping the tool in `FunctionTool(..., require_confirmation=True)` and setting `tool_context.actions.transfer_to_agent = "supervisor"`. Both map directly to this lab's Go code. Python's `Workflow(edges=[("START", finance_agent)])` wrapper has no equivalent here — this lab's `finance_agent` is a plain `llmagent` with `SubAgents`, confirmed sufficient.
+> **Coming from Python?** 🐍 Python's lab has you complete two `TODO`s: wrapping the tool in `FunctionTool(..., require_confirmation=True)` and setting `tool_context.actions.transfer_to_agent = "supervisor"`. Both map directly to this lab's Go code. Python's `Workflow(edges=[("START", finance_agent)])` wrapper has no equivalent here — this lab's `finance_agent` is a plain `llmagent` with `SubAgents`, confirmed sufficient.

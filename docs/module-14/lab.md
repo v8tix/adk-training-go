@@ -1,8 +1,8 @@
-# Lab 14: Integrating a Third-Party Wikipedia Tool (Go)
+# Lab 14: Integrating a Third-Party Wikipedia Tool (Go) 📚
 
 ## Goal
 
-Build a "fact-finder" agent that looks up information on Wikipedia, using a real, independently-maintained third-party Go package — no cloud account beyond what earlier modules already need.
+Build a "fact-finder" agent that looks up information on Wikipedia, using a real, independently-maintained third-party Go package — no cloud account needed beyond what earlier modules already require.
 
 ### Step 1: The Tool
 
@@ -18,7 +18,7 @@ func lookupWikipedia(_ agent.Context, args LookupWikipediaArgs) (LookupWikipedia
 }
 ```
 
-Notice the package's own `init()`, right above it — that's where the User-Agent fix from this module's README lives.
+Notice the package's own `init()` right above it — that's where the User-Agent fix from this module's README lives.
 
 ### Step 2: The Agent
 
@@ -31,7 +31,7 @@ wikipediaTool, err := functiontool.New(functiontool.Config{
 }, lookupWikipedia)
 ```
 
-### Step 3: Run It
+### Step 3: Run It 🚀
 
 ```bash
 go run ./cmd/fact-finder console
@@ -57,25 +57,25 @@ life and achievements:
   two, and the only person to win in two different scientific fields.
 ```
 
-No `GOOGLE_AI_STUDIO_API_KEY` needed — this runs entirely on the local Ollama default, confirmed live, since a plain function tool needs no built-in-tool capability. If you want to see the tool actually verify it searched rather than guessed, drive the agent directly through `runner.Run` instead of the console launcher, the way `agent_test.go`'s `askFactFinder` does — it filters `Thought` parts and reads the tool's own `FunctionResponse`, exactly the pattern this repo has used to test every agent since module-9.
+No `GOOGLE_AI_STUDIO_API_KEY` needed — this runs entirely on the local Ollama default, confirmed live, since a plain function tool needs no built-in-tool capability. Want to see the tool actually verify it searched rather than guessed? Drive the agent directly through `runner.Run` instead of the console launcher, the way `agent_test.go`'s `askFactFinder` does — it filters `Thought` parts and reads the tool's own `FunctionResponse`, the same pattern this repo's used to test every agent since module-9.
 
-### Step 4: Confirm the Tool Actually Ran
+### Step 4: Confirm the Tool Actually Ran ✅
 
-`internal/agents/factfinder/agent_test.go`'s `assertLooksUpWikipedia` checks the tool's own `FunctionResponse` — not just the final text — asserting `status == "success"` and the summary genuinely mentions the queried subject. This matters because a model could otherwise answer a well-known question like this one from its own training data without ever calling the tool.
+`internal/agents/factfinder/agent_test.go`'s `assertLooksUpWikipedia` checks the tool's own `FunctionResponse` — not just the final text — asserting `status == "success"` and the summary genuinely mentions the queried subject. This matters because a model could otherwise answer a well-known question like this one straight from its own training data, without ever bothering to call the tool. 🕵️
 
 ### Troubleshooting
 
 See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
-### Lab Summary
+### Lab Summary 🎉
 
-You integrated a real, third-party Go package into an ADK agent using the exact same `functiontool.New` pattern every custom-tool module since module-9 already uses — no special adapter needed.
+You integrated a real, third-party Go package into an ADK agent using the exact same `functiontool.New` pattern every custom-tool module since module-9 already uses — no special adapter needed. Easy!
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - Why does `functiontool.New` need no information about where `lookupWikipedia`'s logic comes from — your own code or a third-party package?
 - `TestLookupWikipedia`'s "nonsense query" test asserts a structured error result, not a Go error. Why does that distinction matter for what the model can do with the outcome?
 - What would change in `tools.go` if you wanted to swap `github.com/trietmn/go-wiki` for a different Wikipedia client library?
 
 <hr/>
 
-> **Coming from Python?** Python's lab has you instantiate a `WikipediaAPIWrapper`, wrap it in `WikipediaQueryRun`, then wrap *that* in `LangchainTool` — three layers, because LangChain's tool object needs translating into ADK's shape. This lab has one layer: a Go function that calls the third-party package directly, wrapped with the same `functiontool.New` every earlier module already uses.
+> **Coming from Python?** 🐍 Python's lab has you instantiate a `WikipediaAPIWrapper`, wrap it in `WikipediaQueryRun`, then wrap *that* in `LangchainTool` — three layers, because LangChain's tool object needs translating into ADK's shape. This lab has one layer: a Go function that calls the third-party package directly, wrapped with the same `functiontool.New` every earlier module already uses.

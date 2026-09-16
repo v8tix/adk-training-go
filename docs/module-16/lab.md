@@ -1,8 +1,8 @@
-# Lab 16: Building a Hybrid News Aggregator (Go)
+# Lab 16: Building a Hybrid News Aggregator (Go) 📰
 
 ## Goal
 
-Build the two-agent design from module-15's own paper exercise for real — plus a third agent and a genuine hybrid graph: two research agents run in parallel, converge at a `JoinNode`, then a summarizer runs sequentially.
+Time to build the two-agent design from module-15's paper exercise for real — plus a third agent and a genuine hybrid graph: two research agents run in parallel, converge at a `JoinNode`, then a summarizer runs sequentially. Let's go! 🚀
 
 ### The Architecture
 
@@ -17,7 +17,7 @@ flowchart TD
 
 ### Step 1: The Three Agents
 
-`internal/agents/newsaggregator/agent.go`'s `BuildRootAgent` builds three plain `llmagent`s — no tools, no built-in-tool capability, matching Python's own lab (neither researcher is given a real search tool here; this lesson is about the orchestration topology, not live retrieval):
+`internal/agents/newsaggregator/agent.go`'s `BuildRootAgent` builds three plain `llmagent`s — no tools, no built-in-tool capability, matching Python's own lab (neither researcher gets a real search tool here; this lesson is about the orchestration topology, not live retrieval):
 
 ```go
 techResearcher, _ := llmagent.New(llmagent.Config{
@@ -36,7 +36,7 @@ summarizer, _ := llmagent.New(llmagent.Config{
 })
 ```
 
-### Step 2: Assemble the Hybrid Graph
+### Step 2: Assemble the Hybrid Graph 🔧
 
 ```go
 techNode, _ := workflow.NewAgentNode(techResearcher, workflow.NodeConfig{})
@@ -57,7 +57,7 @@ rootAgent, _ := workflowagent.New(workflowagent.Config{Name: "NewsSystem", Edges
 
 Five edges for a three-node hybrid graph — two for the fan-out, two for the fan-in, one for the sequential step, written as explicit `Edge{}` literals so each connection is visible at a glance. This module's README shows the real builder alternatives (`workflow.Chain`, `EdgeBuilder.AddFanOut`/`AddFanIn`) for the same shapes.
 
-### Step 3: Run and Verify
+### Step 3: Run and Verify ▶️
 
 ```bash
 go run ./cmd/news-aggregator console
@@ -88,25 +88,25 @@ Hey there, friends!
 * **Record-Breaking Runs:** ...
 ```
 
-Notice the summarizer's newsletter genuinely weaves in facts from *both* researchers — proof the fan-out/fan-in actually worked, not just that the graph didn't error.
+Notice how the summarizer's newsletter genuinely weaves in facts from *both* researchers — that's your proof the fan-out/fan-in actually worked, not just that the graph didn't error. ✅
 
-### A Real, Confirmed Difference Between Backends
+### A Real, Confirmed Difference Between Backends 🔄
 
-Since neither researcher has a real search tool, each backend fills the gap differently — confirmed live, not assumed. The local Ollama model, asked to "find headlines" with no way to actually search, honestly declined and offered alternative sources instead of inventing any. Gemini instead answered confidently from its own training data, producing plausible-sounding (but not actually live) headlines. Neither is wrong — this lab is about proving the graph's topology works, not about sourcing real news; module-12's `google_search` (Gemini-only) is the tool you'd reach for if live retrieval were the actual goal, but it can't share a `tools` list with these plain agents' custom-tool-shaped setup without the same `IncludeServerSideToolInvocations` flag from that module.
+Since neither researcher has a real search tool, each backend fills the gap differently — confirmed live, not assumed. The local Ollama model, asked to "find headlines" with no way to actually search, honestly declined and offered alternative sources instead of inventing any (respect 🙌). Gemini instead answered confidently from its own training data, producing plausible-sounding (but not actually live) headlines. Neither is wrong — this lab is about proving the graph's topology works, not about sourcing real news; module-12's `google_search` (Gemini-only) is the tool you'd reach for if live retrieval were the actual goal, but it can't share a `tools` list with these plain agents' custom-tool-shaped setup without the same `IncludeServerSideToolInvocations` flag from that module.
 
-### Troubleshooting
+### Troubleshooting 🛠️
 
 See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
 
-### Lab Summary
+### Lab Summary 🎉
 
 You built a real hybrid graph: fan-out with plain parallel edges, fan-in with `JoinNode`, and a sequential final step — all wired with `workflow.Edge`, and proven end-to-end with a test that checks both `OutputKey`s actually populated, not just that the graph ran without error.
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - Why does `JoinNode`'s own doc comment call conditional routing into it a configuration error? What would happen if one of the two research branches used a `Route` that sometimes skipped it?
 - The summarizer's instruction never directly touches the `JoinNode`'s own aggregated output. What does the `JoinNode` actually guarantee, if not the data itself?
 - How would you add a third parallel branch (say, a `sports_researcher`)? What exactly would you need to add to the edges slice?
 
 <hr/>
 
-> **Coming from Python?** Python's lab tip notes a 3-element tuple `(A, B, C)` is shorthand for two edges. Go's direct equivalent is `workflow.Chain(A, B, C)` — this lab writes five explicit `Edge{From, To}` values instead, purely for clarity while learning the model, not because Go lacks the shorthand.
+> **Coming from Python?** 🐍 Python's lab tip notes a 3-element tuple `(A, B, C)` is shorthand for two edges. Go's direct equivalent is `workflow.Chain(A, B, C)` — this lab writes five explicit `Edge{From, To}` values instead, purely for clarity while learning the model, not because Go lacks the shorthand.

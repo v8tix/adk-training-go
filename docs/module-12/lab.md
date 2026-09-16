@@ -1,4 +1,4 @@
-# Lab 12: Building a Research Assistant with Web Search (Go)
+# Lab 12: Building a Research Assistant with Web Search (Go) 🔎
 
 ## Goal
 
@@ -6,7 +6,7 @@ Build a research assistant that grounds itself in live web results, then hands t
 
 ### Prerequisites
 
-This lab needs a real `GOOGLE_AI_STUDIO_API_KEY` in your `.env` — `google_search` only works on Gemini 2.0+ models, and the local Ollama backend rejects it outright before ever reaching the network (confirmed in module-8). There's no local-only path through this lab.
+This lab needs a real `GOOGLE_AI_STUDIO_API_KEY` in your `.env` — `google_search` only works on Gemini 2.0+ models, and the local Ollama backend rejects it outright before ever reaching the network (confirmed in module-8). There's no local-only path through this one, sorry! 😅
 
 ### Step 1: The Two Agents
 
@@ -22,14 +22,14 @@ func BuildFormatterAgent(llmModel model.LLM) (agent.Agent, error) {
 }
 ```
 
-The two custom tools formatter agent calls live in `tools.go`:
+The two custom tools the formatter agent calls live in `tools.go`:
 
 - `extractKeyFacts(ctx, ExtractKeyFactsArgs{Text, NumFacts}) (ExtractKeyFactsResult, error)` — splits `Text` on `.`, keeps sentences longer than 10 characters, up to `NumFacts` of them.
 - `formatResearchNotes(ctx, FormatResearchNotesArgs{Topic, Findings}) (FormatResearchNotesResult, error)` — builds a Markdown-style report with a generated timestamp.
 
-Read both agent builders and both tool functions before moving on — this lab is about how they're orchestrated, not about writing new tool logic.
+Read both agent builders and both tool functions before moving on — this lab's about how they're orchestrated, not about writing new tool logic.
 
-### Step 2: Run the Pipeline
+### Step 2: Run the Pipeline 🏃
 
 `cmd/research-assistant/main.go`'s `runResearchPipeline` does the orchestration:
 
@@ -83,25 +83,25 @@ Generated: 2026-09-15 09:27:29
 [...]
 ```
 
-Notice: the research agent's findings reflect real, current events beyond any training cutoff — proof `google_search` genuinely ran — and the formatter agent never touched the web at all, only the findings text it was handed.
+Notice: the research agent's findings reflect real, current events beyond any training cutoff — proof `google_search` genuinely ran — and the formatter agent never touched the web at all, only the findings text it was handed. Neat separation of concerns! 🎯
 
-### Step 3 (Bonus): One Agent, Both Tool Types
+### Step 3 (Bonus): One Agent, Both Tool Types 🎁
 
 `BuildCombinedAgent` in the same package shows the alternative this module's README covers: instead of two agents, one agent with `IncludeServerSideToolInvocations` set can use `google_search` and your custom tools together. Read `TestCombinedAgent_UsesSearchAndCustomTool_Gemini` in `agent_test.go` to see how that's proven — it checks for real `GroundingMetadata` *and* a real `FunctionResponse` from `format_research_notes` in the same conversation.
 
 ### Troubleshooting
 
-See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.
+Hit a snag? See [troubleshooting.md](./troubleshooting.md).
 
-### Lab Summary
+### Lab Summary 🎉
 
-You built a two-agent research pipeline using the ADK's built-in `google_search` tool, learned exactly why the Gemini API rejects mixing it with custom tools by default, and saw both ways around that: splitting into two agents, or setting one flag to combine them in one.
+You built a two-agent research pipeline using the ADK's built-in `google_search` tool, learned exactly why the Gemini API rejects mixing it with custom tools by default, and saw both ways around that: splitting into two agents, or setting one flag to combine them in one. Solid work!
 
-### Self-Reflection Questions
+### Self-Reflection Questions 🤔
 - Why does `google_search` running "inside the model" make it a fundamentally different kind of tool than `extract_key_facts`, which runs in your own Go process?
-- `TestMixedTools_WithoutServerSideFlag_Fails_Gemini` deliberately builds an invalid agent to prove the restriction is real. Why is a test that expects failure just as valuable as one that expects success?
-- Now that you know `IncludeServerSideToolInvocations` exists, when would you still choose sequential composition (two agents) over the combined single-agent approach?
+- `TestMixedTools_WithoutServerSideFlag_Fails_Gemini` deliberately builds an invalid agent to prove the restriction is real. Why's a test that expects failure just as valuable as one that expects success?
+- Now that you know `IncludeServerSideToolInvocations` exists, when would you still pick sequential composition (two agents) over the combined single-agent approach?
 
 <hr/>
 
-> **Coming from Python?** Python's lab builds only the sequential-composition version — `formatter_agent` is left as a `TODO` for you to complete, then `main.py`'s `run_agent` helper does the same two-call orchestration `runAgent` does here. This Go lab adds Step 3 as bonus content with no Python equivalent in this course.
+> **Coming from Python?** 🐍 Python's lab only builds the sequential-composition version — `formatter_agent` is left as a `TODO` for you to complete, then `main.py`'s `run_agent` helper does the same two-call orchestration `runAgent` does here. This Go lab throws in Step 3 as bonus content with no Python equivalent in this course.
