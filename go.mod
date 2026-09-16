@@ -3,10 +3,12 @@ module github.com/v8tix/adk-training-go
 go 1.27.1
 
 require (
+	github.com/a2aproject/a2a-go/v2 v2.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/openai/openai-go/v3 v3.54.0
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.44.0
+	github.com/trietmn/go-wiki v1.0.4
 	github.com/v8tix/kawa v1.0.3
 	google.golang.org/adk/v2 v2.4.0
 	google.golang.org/genai v1.71.0
@@ -20,7 +22,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.38.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/a2aproject/a2a-go/v2 v2.5.0 // indirect
+	github.com/a2aproject/a2a-go v0.3.15 // indirect
 	github.com/anaskhan96/soup v1.2.5 // indirect
 	github.com/awalterschulze/gographviz v2.0.3+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -81,7 +83,6 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
-	github.com/trietmn/go-wiki v1.0.4 // indirect
 	github.com/v8tix/jsonx v1.0.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -100,6 +101,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
