@@ -37,6 +37,16 @@ Delegation isn't a separate routing step you write — it's the model itself dec
 
 If no specialist matches, the model simply doesn't call the tool — it answers directly, using whatever its own instruction says to do in that case.
 
+Both branches of that decision, matching the design this module's lab builds:
+
+```mermaid
+flowchart TD
+    User([User message]) --> Router[router_agent]
+    Router -->|"description matches<br/>(e.g. Spanish)"| Transfer[[calls transfer_to_agent]]
+    Transfer --> Specialist[spanish_greeter_agent]
+    Router -->|"no specialist matches<br/>(e.g. French)"| Direct["router answers directly"]
+```
+
 ### No `workflow` Wrapper Required
 
 `google.golang.org/adk/v2/workflow` and `agent/workflowagent` are real, separate packages (`workflow.NewFunctionNode`, `workflowagent.New(workflowagent.Config{...})`) for a different collaboration style: deterministic, code-driven routing between nodes, rather than the model deciding. They're not needed for the pattern this module covers — confirmed live in module-13, a plain `llmagent` with `SubAgents` is sufficient on its own for LLM-driven delegation. This course's own later modules on static and cyclic workflow orchestration are where `workflow`/`workflowagent` earn their place.

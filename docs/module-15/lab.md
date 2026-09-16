@@ -42,6 +42,14 @@ A monolithic agent handling greetings in every language would need an unmanageab
 
 ### Step 2: Map the Interaction Flow
 
+```mermaid
+flowchart TD
+    User([User message]) --> Router[router_agent]
+    Router -->|"description matches<br/>(e.g. Spanish)"| Transfer[[calls transfer_to_agent]]
+    Transfer --> Specialist[spanish_greeter_agent]
+    Router -->|"no specialist matches<br/>(e.g. French)"| Direct["router answers directly"]
+```
+
 #### Flow 1: Supported Language (Spanish)
 
 1. **User input:** "Can you greet me in Spanish?" reaches the router via `runner.Run`.

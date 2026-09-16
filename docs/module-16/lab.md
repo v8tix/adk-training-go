@@ -6,10 +6,13 @@ Build the two-agent design from module-15's own paper exercise for real — plus
 
 ### The Architecture
 
-```
-        ┌──── tech_researcher ────┐
-START ──┼                         ├──→ JoinNode → summarizer → END
-        └──── market_researcher ──┘
+```mermaid
+flowchart TD
+    START([START]) --> tech[tech_researcher]
+    START --> market[market_researcher]
+    tech --> syncer{{news_sync — JoinNode}}
+    market --> syncer
+    syncer --> summarizer[summarizer]
 ```
 
 ### Step 1: The Three Agents

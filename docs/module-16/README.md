@@ -61,6 +61,19 @@ edges := []workflow.Edge{
 }
 ```
 
+### The Full Graph, Visualized
+
+The five edges above form this shape — generated to match the real `[]workflow.Edge` list in `agent.go`, not a simplified version of it:
+
+```mermaid
+flowchart TD
+    START([START]) --> tech[tech_researcher]
+    START --> market[market_researcher]
+    tech --> syncer{{news_sync — JoinNode}}
+    market --> syncer
+    syncer --> summarizer[summarizer]
+```
+
 ### How Data Actually Flows: `OutputKey`, Not the Join's Own Output
 
 `JoinNode`'s own `Run` method does emit an aggregated `map[string]any` (each predecessor's output, keyed by name) — but confirmed live this module, that's not what a downstream agent actually reads. The real mechanism is `llmagent.Config.OutputKey`, which writes an agent's final response into session state under a name:
