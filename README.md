@@ -14,7 +14,7 @@ Every technical claim in these docs is grounded in one of two things: the actual
 
 This project is an **Adapted Material** derivative of [doc-adk-training](https://github.com/mauripsale/doc-adk-training) — read the original course itself at **[mauripsale.github.io/doc-adk-training/docs](https://mauripsale.github.io/doc-adk-training/docs/)** — created and maintained by [**Maurizio Ipsale**](https://www.linkedin.com/in/maurizioipsale/), a Google Cloud Authorized Trainer and Google Developer Expert (GDE) in AI and Cloud. All credit for the course design, module structure, and pedagogical approach goes to the original author.
 
-The training curriculum content is licensed under [**Creative Commons Attribution 4.0 International (CC BY 4.0)**](https://creativecommons.org/licenses/by/4.0/) — see [`docs/LICENSE`](docs/LICENSE). This repo exercises that license by translating and adapting the curriculum into Go: **the docs, labs, and course structure in `docs/` are Adapted Material derived from the original Python course**, modified to teach the Go SDK instead. The original material is provided as-is, with no warranty, under the same license.
+The training curriculum content is licensed under [**Creative Commons Attribution 4.0 International (CC BY 4.0)**](https://creativecommons.org/licenses/by/4.0/) — see [`LICENSE-DOCS`](LICENSE-DOCS). This repo exercises that license by translating and adapting the curriculum into Go: **the docs, labs, and course structure in `docs/` are Adapted Material derived from the original Python course**, modified to teach the Go SDK instead. The original material is provided as-is, with no warranty, under the same license.
 
 ## 📦 What's Actually in Here
 
@@ -77,6 +77,6 @@ Full details for each lab — including exact commands, expected output, and tro
 This project uses a split license, matching the same split the original course uses for its own code samples vs. curriculum:
 
 - **Go source code** (`internal/`, `cmd/`) — [Apache License 2.0](LICENSE).
-- **Training curriculum** (`docs/`) — [Creative Commons Attribution 4.0 International](docs/LICENSE), as **Adapted Material** derived from [doc-adk-training](https://github.com/mauripsale/doc-adk-training) by Maurizio Ipsale. The curriculum is shared and modified under the same license; this repo does not claim endorsement by, or affiliation with, the original author or Google.
+- **Training curriculum** (`docs/`) — [Creative Commons Attribution 4.0 International](LICENSE-DOCS), as **Adapted Material** derived from [doc-adk-training](https://github.com/mauripsale/doc-adk-training) by Maurizio Ipsale. The curriculum is shared and modified under the same license; this repo does not claim endorsement by, or affiliation with, the original author or Google.
 
 The original material — and this adaptation of it — is provided **as-is**, with no warranties of any kind. See the full disclaimer of warranties in each LICENSE file.
