@@ -141,7 +141,7 @@ func assertSupportAnalyzerReturnsStructuredAnalysis(t *testing.T, cfg llm.Config
 		t.Run(tt.name, func(t *testing.T) {
 			raw, err := analyzeTicket(t.Context(), llmModel, tt.ticket)
 			if err != nil && strings.Contains(err.Error(), structuredOutputUnavailableMsg) {
-				t.Skipf("skipping: %s does not support structured output (%v) — unset OLLAMA_MODEL or point it at a GGUF quantization like the repo default, qwen3.8:27b (see docs/module-4/README.md)", cfg.OllamaModel, err)
+				t.Skipf("skipping: %s does not support structured output (%v) — unset OLLAMA_MODEL or point it at a GGUF quantization like the repo default, qwen3.8:27b (see docs/module-04/README.md)", cfg.OllamaModel, err)
 			}
 			if err != nil {
 				t.Fatalf("analyzeTicket(%q) error = %v", tt.ticket, err)

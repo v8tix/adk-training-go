@@ -28,7 +28,7 @@ Every module's docs live at `docs/module-N/`: `README.md` (Theory), `lab.md` (th
 
 ## 🚀 Getting Started
 
-Requires **Go 1.27+**. See [`docs/module-2/README.md`](docs/module-2/README.md) for the full environment setup walkthrough (installing Go, Ollama for a local model, or configuring Gemini).
+Requires **Go 1.27+**. See [`docs/module-02/README.md`](docs/module-02/README.md) for the full environment setup walkthrough (installing Go, Ollama for a local model, or configuring Gemini).
 
 ```bash
 go get google.golang.org/adk/v2
@@ -47,16 +47,16 @@ Full details for each lab — including exact commands, expected output, and tro
 
 | # | Module | Docs |
 |---|---|---|
-| 1 | Introduction to AI Agents & Google ADK 🤖 | [README](docs/module-1/README.md) · [Lab](docs/module-1/lab.md) |
-| 2 | Setting Up Your Development Environment 🛠️ | [README](docs/module-2/README.md) · [Lab](docs/module-2/lab.md) |
-| 3 | Your First Agent: The "Echo" Agent 🦜 | [README](docs/module-3/README.md) · [Lab](docs/module-3/lab.md) |
-| 4 | Core Agent Concepts: Agent Deep Dive 🔬 | [README](docs/module-4/README.md) · [Lab](docs/module-4/lab.md) |
-| 4.5 | Professional Model Configuration, Resiliency & Portability 🛡️ | [README](docs/module-4_5/README.md) · [Lab](docs/module-4_5/lab.md) |
-| 5 | Running and Interacting with Agents 🖥️ | [README](docs/module-5/README.md) · [Lab](docs/module-5/lab.md) |
-| 6 | Programmatic Execution: Apps and Runners ⚙️ | [README](docs/module-6/README.md) · [Lab](docs/module-6/lab.md) |
-| 7 | Multimodal and Image Processing 🖼️ | [README](docs/module-7/README.md) · [Lab](docs/module-7/lab.md) |
-| 8 | Introduction to Tools 🔧 | [README](docs/module-8/README.md) · [Lab](docs/module-8/lab.md) |
-| 9 | Creating Custom Function Tools 🛠️ | [README](docs/module-9/README.md) · [Lab](docs/module-9/lab.md) · [Troubleshooting](docs/module-9/troubleshooting.md) |
+| 1 | Introduction to AI Agents & Google ADK 🤖 | [README](docs/module-01/README.md) · [Lab](docs/module-01/lab.md) |
+| 2 | Setting Up Your Development Environment 🛠️ | [README](docs/module-02/README.md) · [Lab](docs/module-02/lab.md) |
+| 3 | Your First Agent: The "Echo" Agent 🦜 | [README](docs/module-03/README.md) · [Lab](docs/module-03/lab.md) |
+| 4 | Core Agent Concepts: Agent Deep Dive 🔬 | [README](docs/module-04/README.md) · [Lab](docs/module-04/lab.md) |
+| 4.5 | Professional Model Configuration, Resiliency & Portability 🛡️ | [README](docs/module-04_5/README.md) · [Lab](docs/module-04_5/lab.md) |
+| 5 | Running and Interacting with Agents 🖥️ | [README](docs/module-05/README.md) · [Lab](docs/module-05/lab.md) |
+| 6 | Programmatic Execution: Apps and Runners ⚙️ | [README](docs/module-06/README.md) · [Lab](docs/module-06/lab.md) |
+| 7 | Multimodal and Image Processing 🖼️ | [README](docs/module-07/README.md) · [Lab](docs/module-07/lab.md) |
+| 8 | Introduction to Tools 🔧 | [README](docs/module-08/README.md) · [Lab](docs/module-08/lab.md) |
+| 9 | Creating Custom Function Tools 🛠️ | [README](docs/module-09/README.md) · [Lab](docs/module-09/lab.md) · [Troubleshooting](docs/module-09/troubleshooting.md) |
 | 10 | Giving Agents Memory with Stateful Tools 🧠 | [README](docs/module-10/README.md) · [Lab](docs/module-10/lab.md) |
 | 11 | Enterprise Integration with a Declarative Tool 🔌 | [README](docs/module-11/README.md) · [Lab](docs/module-11/lab.md) |
 | 12 | Built-in Tools and Grounding 🌐 | [README](docs/module-12/README.md) · [Lab](docs/module-12/lab.md) · [Troubleshooting](docs/module-12/troubleshooting.md) |

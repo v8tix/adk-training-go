@@ -10,7 +10,7 @@
 // unconditionally rejects any non-function tool, including this one
 // ("openai: non-function tools are not supported"), the same category of
 // gap module-7 found for image Parts. So this agent requires
-// MODEL_TYPE=gemini — see cmd/researcher and docs/module-8/README.md for
+// MODEL_TYPE=gemini — see cmd/researcher and docs/module-08/README.md for
 // the full finding, including the confirmed live result that the plain
 // GOOGLE_AI_STUDIO_API_KEY path (no Vertex AI) is sufficient.
 package researcher

@@ -5,7 +5,7 @@
 // flags, and `api` is required alongside `webui` — the Dev UI's frontend
 // calls into the REST API for everything beyond serving its static page),
 // `web --port 8080 api` alone for just the REST API server with no Dev UI
-// (see docs/module-5/README.md for its routes), or `console` for a
+// (see docs/module-05/README.md for its routes), or `console` for a
 // no-browser CLI chat.
 //
 // The agent's own definition lives in internal/agents/supportanalyzer,
@@ -15,7 +15,7 @@
 // Structured output (llmagent.Config.OutputSchema) needs the repo's default
 // OLLAMA_MODEL — a GGUF quantization. Some other quantizations of the same
 // model family return 501 "structured output is unavailable" for it. See
-// docs/module-4/README.md for the finding.
+// docs/module-04/README.md for the finding.
 package main
 
 import (

@@ -11,7 +11,7 @@
 // loaded, even though the underlying model server handles the same image
 // correctly when sent directly (confirmed via a raw HTTP call, bypassing
 // this SDK's client). So this agent requires MODEL_TYPE=gemini — see
-// cmd/visual-catalog and docs/module-7/README.md for the full finding.
+// cmd/visual-catalog and docs/module-07/README.md for the full finding.
 package visualcatalog
 
 import (

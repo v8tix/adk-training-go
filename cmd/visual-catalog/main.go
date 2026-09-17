@@ -9,7 +9,7 @@
 // Requires Gemini — confirmed live that the local Ollama backend's Go client
 // (model/openaimodel) has no code path for sending an image Part at all, so
 // this always forces MODEL_TYPE=gemini in code rather than trusting the
-// shared .env default. See docs/module-7/README.md for the full finding.
+// shared .env default. See docs/module-07/README.md for the full finding.
 //
 // Also demonstrates this module's own lesson: unlike runner.NewInMemory
 // (auto-creates sessions), this program builds its Runner with

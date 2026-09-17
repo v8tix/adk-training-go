@@ -12,7 +12,7 @@
 // reaching the network. cfg.ModelType is forced to gemini in code, not left
 // to the shared .env default, so this can never silently hit that confirmed
 // error path. Also confirmed live: the plain GOOGLE_AI_STUDIO_API_KEY path
-// (no Vertex AI) is sufficient — see docs/module-8/README.md.
+// (no Vertex AI) is sufficient — see docs/module-08/README.md.
 //
 // The agent's own definition lives in internal/agents/researcher — this
 // file is just the CLI/launcher entrypoint.
