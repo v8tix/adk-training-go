@@ -37,6 +37,13 @@ func TestBuildModel(t *testing.T) {
 			wantName:  "gemini-2.5-flash",
 		},
 		{
+			// Live API model: same Express Mode auth path as "vertexai"
+			// above, just a different model identifier and catalog.
+			name:      "vertexai-live",
+			modelType: ModelTypeVertexAILive,
+			wantName:  "gemini-live-2.5-flash-native-audio",
+		},
+		{
 			name:      "unknown model type",
 			modelType: "not-a-real-backend",
 			wantErr:   true,
@@ -170,7 +177,7 @@ func TestVertexAIClientConfig_FallsBackToProjectLocationWithoutAPIKey(t *testing
 func TestKnownModelTypes(t *testing.T) {
 	got := knownModelTypes()
 
-	want := []string{ModelTypeGemini, ModelTypeOllama, ModelTypeVertexAI} // sorted
+	want := []string{ModelTypeGemini, ModelTypeOllama, ModelTypeVertexAI, ModelTypeVertexAILive} // sorted
 	if len(got) != len(want) {
 		t.Fatalf("knownModelTypes() = %v, want %v", got, want)
 	}

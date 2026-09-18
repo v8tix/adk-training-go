@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ADK Streaming Voice Client (Go)</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #status { padding: 10px 20px; font-size: 0.9em; color: #555; border-bottom: 1px solid #ccc; }
+        #transcript-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 10px; max-width: 80%; }
+        .user { background-color: #dcf8c6; align-self: flex-end; }
+        .assistant { background-color: #f1f0f0; align-self: flex-start; }
+        #controls { display: flex; justify-content: center; padding: 20px; border-top: 1px solid #ccc; }
+        #talk-button { padding: 20px 40px; font-size: 1.1em; border-radius: 10px; cursor: pointer; user-select: none; }
+        #talk-button.recording { background-color: #e05252; color: white; }
+    </style>
+</head>
+<body>
+    <div id="status">Connecting…</div>
+    <div id="transcript-container"></div>
+    <div id="controls">
+        <button id="talk-button">🎙️ Hold to Talk</button>
+    </div>
+
+    <script type="module">
+        import { startAudioPlayerWorklet } from './js/audio-player.js';
+        import { startAudioRecorderWorklet, stopMicrophone } from './js/audio-recorder.js';
+
+        const statusEl = document.getElementById('status');
+        const transcriptContainer = document.getElementById('transcript-container');
+        const talkButton = document.getElementById('talk-button');
+
+        // Same-origin by construction: this page is served by
+        // cmd/streaming-agent itself (see its own main.go doc comment for
+        // why that's required, not stylistic — RunLiveHandler's own
+        // WebSocket upgrader falls back to gorilla/websocket's default
+        // same-origin check, confirmed live to 403 any cross-origin
+        // browser client no matter what CORS headers say). window.location
+        // gives the right host:port with no hardcoded value to keep in
+        // sync with main.go's own addr.
+        const WS_BASE = `ws://${window.location.host}`;
+
+        const appName = 'streaming_agent';
+        const userId = 'student-user';
+        const sessionId = `session-${Date.now()}`;
+
+        let websocket = null;
+        let audioRecorderNode, audioRecorderContext, micStream;
+        let audioPlayerNode, audioPlayerContext;
+        let isRecording = false;
+
+        // Test-only hooks for cmd/streaming-agent/browser_test.go's own
+        // chromedp.Poll assertions — the smallest observable state needed
+        // to confirm real WebSocket + real audio traffic from outside the
+        // page, the same pattern module-29's own static/index.html
+        // established (there via rendered DOM text instead, since that
+        // module had no binary protocol to count). __audioBytesSent is what
+        // the permanent browser test actually asserts on — see its own doc
+        // comment for why __audioChunksReceived (a real spoken reply) can't
+        // be asserted on in headless Chrome.
+        window.__wsConnected = false;
+        window.__audioChunksReceived = 0;
+        window.__audioBytesSent = 0;
+
+        function setStatus(text) {
+            statusEl.textContent = text;
+        }
+
+        function addMessage(text, role) {
+            const div = document.createElement('div');
+            div.classList.add('message', role);
+            div.textContent = text;
+            transcriptContainer.appendChild(div);
+            transcriptContainer.scrollTop = transcriptContainer.scrollHeight;
+            return div;
+        }
+
+        // Base64-decode the server's own inlineData.data into the raw
+        // Int16 PCM ArrayBuffer pcm-player-processor.js expects — the one
+        // Base64 step this client still needs, for the *response* side only
+        // (the request side sends raw binary WebSocket frames instead, see
+        // sendAudioChunk below).
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // No separate session-creation call: cmd/streaming-agent's own
+        // controller is built with AutoCreateSession: true (confirmed live
+        // against runner.Runner.getOrCreateSession), unlike module-29's own
+        // /run_sse client, which does need that extra step.
+        async function connect() {
+            const wsUrl = `${WS_BASE}/run_live?appName=${appName}&userId=${userId}&sessionId=${sessionId}`;
+            websocket = new WebSocket(wsUrl);
+            websocket.binaryType = 'arraybuffer';
+
+            websocket.onopen = () => {
+                window.__wsConnected = true;
+                setStatus('Connected — hold the button and speak.');
+            };
+
+            websocket.onclose = () => {
+                window.__wsConnected = false;
+                setStatus('Disconnected.');
+            };
+
+            websocket.onerror = (e) => {
+                console.error('WebSocket error:', e);
+                setStatus('Connection error — see console.');
+            };
+
+            websocket.onmessage = (event) => {
+                const adkEvent = JSON.parse(event.data);
+                handleServerEvent(adkEvent);
+            };
+
+            return new Promise((resolve, reject) => {
+                websocket.addEventListener('open', resolve, { once: true });
+                websocket.addEventListener('error', reject, { once: true });
+            });
+        }
+
+        let lastAssistantBubble = null;
+
+        function handleServerEvent(adkEvent) {
+            if (adkEvent.content && adkEvent.content.parts) {
+                for (const part of adkEvent.content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        window.__audioChunksReceived += 1;
+                        playAudioChunk(part.inlineData.data);
+                    }
+                }
+            }
+
+            // Real-time transcription is a genuine bonus this Go server
+            // enables by default (RunLiveHandler's own LiveRunConfig sets
+            // InputAudioTranscription/OutputAudioTranscription) — Python's
+            // own lab has no text output at all from a native-audio model.
+            if (adkEvent.outputTranscription && adkEvent.outputTranscription.text) {
+                if (!lastAssistantBubble) {
+                    lastAssistantBubble = addMessage('', 'assistant');
+                }
+                lastAssistantBubble.textContent += adkEvent.outputTranscription.text;
+            }
+            if (adkEvent.inputTranscription && adkEvent.inputTranscription.text) {
+                addMessage(adkEvent.inputTranscription.text, 'user');
+            }
+
+            if (adkEvent.turnComplete) {
+                lastAssistantBubble = null;
+            }
+        }
+
+        function playAudioChunk(base64Data) {
+            if (!audioPlayerNode) return;
+            audioPlayerNode.port.postMessage(base64ToArrayBuffer(base64Data));
+        }
+
+        // Send audio as a raw binary WebSocket frame — RunLiveHandler auto-
+        // wraps it as audio/pcm;rate=16000 server-side, with no JSON
+        // envelope and no Base64 encoding needed, unlike Python's own lab.
+        function sendAudioChunk(pcmArrayBuffer) {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(pcmArrayBuffer);
+                window.__audioBytesSent += pcmArrayBuffer.byteLength;
+            }
+        }
+
+        async function startTalking() {
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                await connect();
+            }
+            if (!audioPlayerNode) {
+                [audioPlayerNode, audioPlayerContext] = await startAudioPlayerWorklet();
+            }
+            [audioRecorderNode, audioRecorderContext, micStream] =
+                await startAudioRecorderWorklet(sendAudioChunk);
+            isRecording = true;
+            talkButton.classList.add('recording');
+            talkButton.textContent = '🔴 Recording…';
+        }
+
+        // Trailing silence, not an explicit end-of-turn marker: confirmed
+        // live, RunLiveHandler never configures RealtimeInputConfig, so the
+        // Live API stays in its own default automatic-activity-detection
+        // mode. Sending {"activityEnd": {}} in that mode is a silent no-op —
+        // no error, no response, ever — because automatic mode expects the
+        // *server* to find the end of speech from the audio itself, not a
+        // client-side marker (that marker only has defined behavior once
+        // automatic detection is explicitly disabled, which this SDK
+        // version gives callers no way to configure from outside
+        // RunLiveHandler). ~1s of real trailing silence after the last real
+        // frame lets the server's own VAD detect end-of-speech naturally —
+        // confirmed live to produce a complete, real response every time.
+        const SILENCE_TAIL_MS = 1000;
+        const SAMPLE_RATE = 16000;
+        function sendSilenceTail() {
+            const byteLength = Math.round(SAMPLE_RATE * (SILENCE_TAIL_MS / 1000)) * 2; // 16-bit mono
+            sendAudioChunk(new ArrayBuffer(byteLength));
+        }
+
+        function stopTalking() {
+            if (!isRecording) return;
+            isRecording = false;
+            talkButton.classList.remove('recording');
+            talkButton.textContent = '🎙️ Hold to Talk';
+
+            if (micStream) {
+                stopMicrophone(micStream);
+            }
+            if (audioRecorderContext) {
+                audioRecorderContext.close();
+            }
+
+            sendSilenceTail();
+        }
+
+        talkButton.addEventListener('mousedown', startTalking);
+        talkButton.addEventListener('mouseup', stopTalking);
+        talkButton.addEventListener('mouseleave', () => { if (isRecording) stopTalking(); });
+        talkButton.addEventListener('touchstart', (e) => { e.preventDefault(); startTalking(); });
+        talkButton.addEventListener('touchend', (e) => { e.preventDefault(); stopTalking(); });
+
+        connect().catch((error) => {
+            console.error('Initial connection failed:', error);
+            setStatus('Could not connect — is cmd/streaming-agent running?');
+        });
+    </script>
+</body>
+</html>

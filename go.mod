@@ -4,7 +4,9 @@ go 1.27.1
 
 require (
 	github.com/a2aproject/a2a-go/v2 v2.5.0
+	github.com/chromedp/cdproto v0.0.0-20260714215040-dc233986426f
 	github.com/chromedp/chromedp v0.16.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/openai/openai-go/v3 v3.54.0
@@ -35,7 +37,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/chromedp/cdproto v0.0.0-20260714215040-dc233986426f // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
@@ -63,7 +64,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect
 	github.com/googleapis/gax-go/v2 v2.24.1 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/klauspost/compress v1.18.6 // indirect

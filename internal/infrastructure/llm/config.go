@@ -48,6 +48,15 @@ type Config struct {
 	// own default) 404s on Vertex ("Publisher model ... was not found"),
 	// while "gemini-2.5-flash" works.
 	VertexAIModel string
+	// VertexAILiveModel is a separate model identifier from VertexAIModel
+	// because the Gemini Live API (bidirectional audio streaming, module-30)
+	// draws from a genuinely distinct model catalog than regular
+	// request/response Vertex models — confirmed live: VertexAIModel's own
+	// default ("gemini-2.5-flash") doesn't support the Live API's
+	// client.Live.Connect at all, while "gemini-live-2.5-flash-native-audio"
+	// does, with no Go-vs-Python name lag this time (unlike VertexAIModel's
+	// own gemini-3.5-flash/gemini-2.5-flash mismatch).
+	VertexAILiveModel string
 }
 
 // LoadConfig reads Config from the environment, falling back to this
@@ -61,15 +70,16 @@ type Config struct {
 // per-module OLLAMA_MODEL override.
 func LoadConfig() Config {
 	return Config{
-		ModelType:        getEnv("MODEL_TYPE", ModelTypeOllama),
-		OllamaBaseURL:    getEnv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-		OllamaModel:      getEnv("OLLAMA_MODEL", "qwen3.8:27b"),
-		GeminiModel:      getEnv("GEMINI_MODEL", "gemini-3.5-flash"),
-		GoogleAPIKey:     getEnv("GOOGLE_AI_STUDIO_API_KEY", ""),
-		VertexAIAPIKey:   getEnv("VERTEX_AI_API_KEY", ""),
-		VertexAIProject:  getEnv("VERTEX_AI_PROJECT", ""),
-		VertexAILocation: getEnv("VERTEX_AI_LOCATION", ""),
-		VertexAIModel:    getEnv("VERTEX_AI_MODEL", "gemini-2.5-flash"),
+		ModelType:         getEnv("MODEL_TYPE", ModelTypeOllama),
+		OllamaBaseURL:     getEnv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+		OllamaModel:       getEnv("OLLAMA_MODEL", "qwen3.8:27b"),
+		GeminiModel:       getEnv("GEMINI_MODEL", "gemini-3.5-flash"),
+		GoogleAPIKey:      getEnv("GOOGLE_AI_STUDIO_API_KEY", ""),
+		VertexAIAPIKey:    getEnv("VERTEX_AI_API_KEY", ""),
+		VertexAIProject:   getEnv("VERTEX_AI_PROJECT", ""),
+		VertexAILocation:  getEnv("VERTEX_AI_LOCATION", ""),
+		VertexAIModel:     getEnv("VERTEX_AI_MODEL", "gemini-2.5-flash"),
+		VertexAILiveModel: getEnv("VERTEX_AI_LIVE_MODEL", "gemini-live-2.5-flash-native-audio"),
 	}
 }
 

@@ -6,7 +6,7 @@ Welcome! This repo is a **Go-language mirror** of [**Google ADK Training: From Z
 
 The original course teaches ADK 2.0 through Python, across 40 modules. This repo mirrors that same curriculum **module by module in Go**, adapting every lesson, lab, and code sample to real, idiomatic Go — including calling out the places where Go's SDK behaves genuinely differently from Python's (and there are more of those than you'd expect 👀).
 
-**Current coverage:** modules 1 through 29 — everything from your first agent through distributed, multi-agent systems over real A2A network calls, plus state and memory, artifacts, evaluation, observability, RAI safety plugins, callbacks/guardrails, building/consuming MCP stateful tools, and custom UI integration. See the [full module list](#-course-outline) below.
+**Current coverage:** modules 1 through 30 — everything from your first agent through distributed, multi-agent systems over real A2A network calls, plus state and memory, artifacts, evaluation, observability, RAI safety plugins, callbacks/guardrails, building/consuming MCP stateful tools, custom UI integration, and bidirectional audio streaming over a custom voice client. See the [full module list](#-course-outline) below.
 
 Every technical claim in these docs is grounded in one of two things: the actual Go SDK source, read directly, or a live probe/test that proved the behavior — never just a Python-to-Go guess. Where Go's SDK does something differently (sometimes better, sometimes just different) than Python's, the docs say so explicitly.
 
@@ -100,6 +100,7 @@ This table grows as later modules add their own real, external tool. If a module
 | 27 | Introduction to MCP & Stateful Tools 🔌🗂️ | [README](docs/module-27/README.md) · [Lab](docs/module-27/lab.md) |
 | 28 | Building a Custom MCP Tool 🛠️🔌 | [README](docs/module-28/README.md) · [Lab](docs/module-28/lab.md) |
 | 29 | Introduction to UI Integration 💬🌐 | [README](docs/module-29/README.md) · [Lab](docs/module-29/lab.md) |
+| 30 | Building a Custom Streaming Client 🎙️🔊 | [README](docs/module-30/README.md) · [Lab](docs/module-30/lab.md) |
 
 ## 📜 License
 

@@ -17,9 +17,10 @@ import (
 // backends register their own factory in modelFactories instead of adding a
 // branch to BuildModel.
 const (
-	ModelTypeOllama   = "ollama"
-	ModelTypeGemini   = "gemini"
-	ModelTypeVertexAI = "vertexai"
+	ModelTypeOllama       = "ollama"
+	ModelTypeGemini       = "gemini"
+	ModelTypeVertexAI     = "vertexai"
+	ModelTypeVertexAILive = "vertexai-live"
 )
 
 var (
@@ -36,9 +37,10 @@ var (
 type modelFactory func(ctx context.Context, cfg Config) (model.LLM, string, error)
 
 var modelFactories = map[string]modelFactory{
-	ModelTypeOllama:   newOllamaModel,
-	ModelTypeGemini:   newGeminiModel,
-	ModelTypeVertexAI: newVertexAIModel,
+	ModelTypeOllama:       newOllamaModel,
+	ModelTypeGemini:       newGeminiModel,
+	ModelTypeVertexAI:     newVertexAIModel,
+	ModelTypeVertexAILive: newVertexAILiveModel,
 }
 
 // BuildModel dispatches to the factory registered for cfg.ModelType.
@@ -134,4 +136,20 @@ func vertexAIClientConfig(cfg Config) *genai.ClientConfig {
 	cc.Project = cfg.VertexAIProject
 	cc.Location = cfg.VertexAILocation
 	return cc
+}
+
+// newVertexAILiveModel builds the Gemini Live API backend (module-30),
+// required for bidirectional audio streaming over runner.RunLive. This is
+// the only model type in this project that RunLive accepts at all: its own
+// interface check (internal/llminternal/base_flow.go) requires
+// interface{ Client() *genai.Client }, which only model/gemini's geminiModel
+// implements — Ollama can't participate in this module even partially,
+// confirmed by reading that source directly.
+//
+// Reuses vertexAIClientConfig's own auth resolution (Express Mode API key or
+// ADC) — the Live API shares the same two auth paths as regular Vertex
+// models, just a different model identifier (VertexAILiveModel).
+func newVertexAILiveModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
+	m, err := gemini.NewModel(ctx, cfg.VertexAILiveModel, vertexAIClientConfig(cfg))
+	return m, cfg.VertexAILiveModel, err
 }
