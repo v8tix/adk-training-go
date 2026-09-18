@@ -58,3 +58,41 @@ func TestRunResearchPipeline_Gemini(t *testing.T) {
 		t.Errorf("report = %q, want it to contain the findings section", report)
 	}
 }
+
+func TestVertexAIConfigured(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  llm.Config
+		want bool
+	}{
+		{name: "nothing set", cfg: llm.Config{}, want: false},
+		{name: "API key only", cfg: llm.Config{VertexAIAPIKey: "key"}, want: true},
+		{name: "project+location only", cfg: llm.Config{VertexAIProject: "p", VertexAILocation: "l"}, want: true},
+		{name: "project without location", cfg: llm.Config{VertexAIProject: "p"}, want: false},
+		{name: "location without project", cfg: llm.Config{VertexAILocation: "l"}, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := vertexAIConfigured(tt.cfg); got != tt.want {
+				t.Errorf("vertexAIConfigured(%+v) = %v, want %v", tt.cfg, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestRunMapsGroundingDemo_VertexAI drives the real runMapsGroundingDemo
+// (the same function main() calls for the bonus) against real Vertex AI.
+// Skips cleanly when neither Vertex AI auth path is configured.
+func TestRunMapsGroundingDemo_VertexAI(t *testing.T) {
+	if !vertexAIConfigured(testConfig) {
+		t.Skip("skipping: neither VERTEX_AI_API_KEY nor VERTEX_AI_PROJECT+VERTEX_AI_LOCATION are set")
+	}
+
+	answer, err := runMapsGroundingDemo(t.Context(), testConfig, defaultMapsQuestion)
+	if err != nil {
+		t.Fatalf("runMapsGroundingDemo() error = %v", err)
+	}
+	if answer == "" {
+		t.Error("runMapsGroundingDemo() returned an empty answer")
+	}
+}

@@ -17,6 +17,13 @@
 // Requires MODEL_TYPE=gemini (forced in code, not left to the shared .env
 // default) — google_search is confirmed live (module-8) to be rejected by
 // the local Ollama backend's Go client before ever reaching the network.
+//
+// A bonus section, gated on either Vertex AI auth path being configured
+// (VERTEX_AI_API_KEY, or VERTEX_AI_PROJECT+VERTEX_AI_LOCATION for
+// Application Default Credentials), demonstrates the google_maps_grounding
+// built-in tool — previously documented in docs/module-12/README.md as a
+// real construction this course couldn't build or test for lack of Vertex
+// AI access.
 package main
 
 import (
@@ -37,6 +44,7 @@ import (
 )
 
 const defaultTopic = "the latest AI developments from Google"
+const defaultMapsQuestion = "What is the Eiffel Tower's street address in Paris?"
 
 // runAgent runs one turn of builtAgent against messageText, in its own
 // fresh in-memory session, and returns the final non-thought text answer —
@@ -91,6 +99,30 @@ func runResearchPipeline(ctx context.Context, llmModel model.LLM, topic string) 
 	return findings, report, nil
 }
 
+// vertexAIConfigured reports whether either of Vertex AI's two real auth
+// paths is set — extracted so main() and a test can share the same check.
+func vertexAIConfigured(cfg llm.Config) bool {
+	return cfg.VertexAIAPIKey != "" || (cfg.VertexAIProject != "" && cfg.VertexAILocation != "")
+}
+
+// runMapsGroundingDemo builds a Vertex-AI-backed model and the
+// google_maps_grounding agent, then runs one location question against it —
+// module-12's own bonus, previously documented as a real construction this
+// course couldn't build or test for lack of Vertex AI access.
+func runMapsGroundingDemo(ctx context.Context, cfg llm.Config, question string) (string, error) {
+	vertexCfg := cfg
+	vertexCfg.ModelType = llm.ModelTypeVertexAI
+	vertexModel, _, err := llm.BuildModel(ctx, vertexCfg)
+	if err != nil {
+		return "", fmt.Errorf("building Vertex AI model: %w", err)
+	}
+	mapsAgent, err := researchassistant.BuildMapsGroundingAgent(vertexModel)
+	if err != nil {
+		return "", fmt.Errorf("building maps grounding agent: %w", err)
+	}
+	return runAgent(ctx, mapsAgent, "maps_grounding_app", question)
+}
+
 func main() {
 	ctx := context.Background()
 	if err := godotenv.Load(); err != nil {
@@ -118,4 +150,16 @@ func main() {
 	fmt.Println(findings)
 	fmt.Println("\n--- FINAL REPORT ---")
 	fmt.Println(report)
+
+	if vertexAIConfigured(cfg) {
+		fmt.Println("\n--- BONUS: GOOGLE MAPS GROUNDING (Vertex AI) ---")
+		mapsAnswer, err := runMapsGroundingDemo(ctx, cfg, defaultMapsQuestion)
+		if err != nil {
+			log.Printf("maps grounding demo failed: %v", err)
+		} else {
+			fmt.Println(mapsAnswer)
+		}
+	} else {
+		fmt.Println("\nℹ️  Skipping the Google Maps grounding bonus — set VERTEX_AI_API_KEY or VERTEX_AI_PROJECT+VERTEX_AI_LOCATION in .env to try it.")
+	}
 }

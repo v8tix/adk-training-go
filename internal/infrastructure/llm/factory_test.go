@@ -3,6 +3,8 @@ package llm
 import (
 	"errors"
 	"testing"
+
+	"google.golang.org/genai"
 )
 
 func TestBuildModel(t *testing.T) {
@@ -27,6 +29,14 @@ func TestBuildModel(t *testing.T) {
 			wantName:  "gemini-3.5-flash",
 		},
 		{
+			// Vertex AI Express Mode: a non-empty APIKey alone is sufficient
+			// auth at construction time, confirmed against genai's own
+			// client.go (no GCP project/location required when APIKey is set).
+			name:      "vertexai",
+			modelType: ModelTypeVertexAI,
+			wantName:  "gemini-2.5-flash",
+		},
+		{
 			name:      "unknown model type",
 			modelType: "not-a-real-backend",
 			wantErr:   true,
@@ -38,6 +48,7 @@ func TestBuildModel(t *testing.T) {
 			cfg := LoadConfig()
 			cfg.ModelType = tt.modelType
 			cfg.GoogleAPIKey = "test-placeholder-key"
+			cfg.VertexAIAPIKey = "test-placeholder-key"
 
 			m, name, err := BuildModel(t.Context(), cfg)
 
@@ -112,10 +123,54 @@ func TestGeminiClientConfig_UsesProductionRetryOptions(t *testing.T) {
 	}
 }
 
+func TestVertexAIClientConfig_UsesBackendAndProductionRetryOptions(t *testing.T) {
+	cfg := LoadConfig()
+	cfg.VertexAIAPIKey = "test-placeholder-key"
+
+	got := vertexAIClientConfig(cfg)
+
+	if got.Backend != genai.BackendVertexAI {
+		t.Errorf("Backend = %v, want %v", got.Backend, genai.BackendVertexAI)
+	}
+	if got.APIKey != cfg.VertexAIAPIKey {
+		t.Errorf("APIKey = %q, want %q", got.APIKey, cfg.VertexAIAPIKey)
+	}
+
+	want := productionRetryOptions()
+	gotRetry := got.HTTPOptions.RetryOptions
+	if gotRetry.MaxDelay == nil || want.MaxDelay == nil || *gotRetry.MaxDelay != *want.MaxDelay {
+		t.Errorf("MaxDelay = %v, want %v", gotRetry.MaxDelay, want.MaxDelay)
+	}
+}
+
+// TestVertexAIClientConfig_FallsBackToProjectLocationWithoutAPIKey proves the
+// two auth paths are mutually exclusive and chosen correctly: when
+// VertexAIAPIKey is empty, Project/Location pass through for genai.NewClient
+// to resolve Application Default Credentials itself — this is a pure
+// field-selection test, no live call or real ADC setup needed.
+func TestVertexAIClientConfig_FallsBackToProjectLocationWithoutAPIKey(t *testing.T) {
+	cfg := LoadConfig()
+	cfg.VertexAIAPIKey = ""
+	cfg.VertexAIProject = "test-project"
+	cfg.VertexAILocation = "us-east1"
+
+	got := vertexAIClientConfig(cfg)
+
+	if got.APIKey != "" {
+		t.Errorf("APIKey = %q, want empty when VertexAIAPIKey is unset", got.APIKey)
+	}
+	if got.Project != "test-project" {
+		t.Errorf("Project = %q, want %q", got.Project, "test-project")
+	}
+	if got.Location != "us-east1" {
+		t.Errorf("Location = %q, want %q", got.Location, "us-east1")
+	}
+}
+
 func TestKnownModelTypes(t *testing.T) {
 	got := knownModelTypes()
 
-	want := []string{ModelTypeGemini, ModelTypeOllama} // sorted
+	want := []string{ModelTypeGemini, ModelTypeOllama, ModelTypeVertexAI} // sorted
 	if len(got) != len(want) {
 		t.Fatalf("knownModelTypes() = %v, want %v", got, want)
 	}

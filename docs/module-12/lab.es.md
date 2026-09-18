@@ -89,19 +89,42 @@ Fíjate: los hallazgos del agente de investigación reflejan eventos reales y ac
 
 `BuildCombinedAgent` en el mismo paquete muestra la alternativa que cubre el README de este módulo: en vez de dos agentes, un agente con `IncludeServerSideToolInvocations` activado puede usar `google_search` y tus herramientas personalizadas juntas. Lee `TestCombinedAgent_UsesSearchAndCustomTool_Gemini` en `agent_test.go` para ver cómo se prueba eso — chequea tanto `GroundingMetadata` real *como* una `FunctionResponse` real de `format_research_notes` en la misma conversación.
 
+### Paso 4 (Bonus): Google Maps Grounding, de Verdad 🗺️
+
+A diferencia de `google_search`, `google_maps_grounding` necesita Vertex AI, no la API pública de Gemini — este paso es opcional y necesita una de estas dos cosas en tu `.env`:
+
+- `VERTEX_AI_API_KEY` — una API key generada a través de la propia inscripción **Express Mode** de Vertex AI Studio (`console.cloud.google.com/vertex-ai/generative/express`). Una API key común de Google Cloud no funciona acá — mira [troubleshooting.md](./troubleshooting.md) si te topás con eso.
+- `VERTEX_AI_PROJECT` + `VERTEX_AI_LOCATION` — Application Default Credentials, el camino que usa cualquier otro SDK de Google Cloud. Instala el CLI de `gcloud`, corre `gcloud auth application-default login`, y luego pon estos dos con tu ID de proyecto y una región de Vertex AI (por ejemplo, `us-east1`).
+
+`internal/agents/researchassistant.BuildMapsGroundingAgent` conecta `geminitool.New("google_maps_grounding", ..., &genai.Tool{GoogleMaps: &genai.GoogleMaps{}})` a un agente construido contra el tipo de modelo `vertexai`. `cmd/research-assistant/main.go` lo corre automáticamente como sección bonus siempre que uno de los dos caminos de autenticación esté configurado — nada extra que correr, solo vuelve a ejecutar el mismo comando del Paso 2 una vez que tu `.env` tenga uno de los dos:
+
+```bash
+go run ./cmd/research-assistant "the latest AI developments from Google"
+```
+
+Salida real y confirmada de la sección bonus de este comando exacto (vía Application Default Credentials — el camino que realmente funcionó en esta sesión, contra una cuenta de Google Cloud preexistente que no pudo conseguir una key Express):
+
+```
+--- BONUS: GOOGLE MAPS GROUNDING (Vertex AI) ---
+The street address for the Eiffel Tower in Paris is Av. Gustave Eiffel, 75007 Paris, France.
+```
+
+Esa es la dirección real, fundamentada en `GroundingMetadata` real de Google Maps — `TestMapsGroundingAgent_AnswersLocationQuestion_VertexAI` en `internal/agents/researchassistant/agent_test.go` lo prueba de forma estructural, chequeando metadata de grounding real, no solo una respuesta no vacía.
+
 ### Solución de Problemas
 
 ¿Te trabaste? Mira [troubleshooting.md](./troubleshooting.md).
 
 ### Resumen del Laboratorio 🎉
 
-Construiste un pipeline de investigación de dos agentes usando la herramienta prediseñada `google_search` del ADK, aprendiste exactamente por qué la API de Gemini rechaza mezclarla con herramientas personalizadas por defecto, y viste ambas formas de solucionarlo: dividir en dos agentes, o activar una bandera para combinarlos en uno. ¡Buen trabajo!
+Construiste un pipeline de investigación de dos agentes usando la herramienta prediseñada `google_search` del ADK, aprendiste exactamente por qué la API de Gemini rechaza mezclarla con herramientas personalizadas por defecto, y viste ambas formas de solucionarlo: dividir en dos agentes, o activar una bandera para combinarlos en uno. Si tenías acceso a Vertex AI, también construiste y probaste `google_maps_grounding` de verdad — y te topaste con el mismo tipo de gotcha real y confirmado de autenticación (el propio requisito de inscripción de Express Mode) que ha llenado todo este módulo. ¡Buen trabajo!
 
 ### Preguntas de Autorreflexión 🤔
 - ¿Por qué correr `google_search` "adentro del modelo" lo hace un tipo de herramienta fundamentalmente diferente a `extract_key_facts`, que corre en tu propio proceso Go?
 - `TestMixedTools_WithoutServerSideFlag_Fails_Gemini` construye deliberadamente un agente inválido para probar que la restricción es real. ¿Por qué un test que espera fallar es igual de valioso que uno que espera éxito?
 - Ahora que sabes que `IncludeServerSideToolInvocations` existe, ¿cuándo seguirías eligiendo la composición secuencial (dos agentes) por sobre el enfoque combinado de un solo agente?
+- `VertexAIModel` es un campo de configuración separado de `GeminiModel`, aunque ambos en definitiva seleccionan un modelo Gemini. ¿Por qué reutilizar `GeminiModel` para Vertex AI no era una suposición segura?
 
 <hr/>
 
-> **¿Vienes de Python?** 🐍 El laboratorio de Python solo construye la versión de composición secuencial — `formatter_agent` se deja como `TODO` para que lo completes tú, y luego el helper `run_agent` de `main.py` hace la misma orquestación de dos llamadas que hace `runAgent` acá. Este laboratorio de Go agrega el Paso 3 como contenido bonus sin equivalente en Python en este curso.
+> **¿Vienes de Python?** 🐍 El laboratorio de Python solo construye la versión de composición secuencial — `formatter_agent` se deja como `TODO` para que lo completes tú, y luego el helper `run_agent` de `main.py` hace la misma orquestación de dos llamadas que hace `runAgent` acá. Este laboratorio de Go agrega los Pasos 3 y 4 como contenido bonus sin equivalente en Python en este curso.

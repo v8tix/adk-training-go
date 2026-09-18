@@ -13,7 +13,9 @@
 // restriction. A third (BuildCombinedAgent) sets the flag and combines both
 // tool types in one agent — real, working Go-SDK behavior Python's own
 // module never describes, confirmed live with real grounding metadata and a
-// real custom-tool call in the same conversation. See docs/module-12/README.md.
+// real custom-tool call in the same conversation. A fourth (BuildMapsGroundingAgent)
+// builds the google_maps_grounding built-in tool against the Vertex AI
+// backend, since genai.GoogleMaps requires it. See docs/module-12/README.md.
 package researchassistant
 
 import (
@@ -100,6 +102,35 @@ func BuildFormatterAgent(llmModel model.LLM) (agent.Agent, error) {
 		Description: "Extracts key facts from research findings and formats them into a report.",
 		Instruction: instruction,
 		Tools:       tools,
+	})
+}
+
+// BuildMapsGroundingAgent constructs an agent around the google_maps_grounding
+// built-in tool — real (geminitool.New + genai.GoogleMaps), but requiring the
+// Vertex AI backend rather than the public Gemini API (genai.GoogleMaps's own
+// doc comment: "This field is not supported in Gemini API"). llmModel must be
+// built against genai.BackendVertexAI (llm.ModelTypeVertexAI) — this function
+// itself doesn't care which backend built llmModel, but the tool call will
+// fail against a plain Gemini API model. Previously documented in
+// docs/module-12/README.md as a real construction this course didn't build or
+// test, for lack of Vertex AI access; built and tested here once that access
+// became available.
+func BuildMapsGroundingAgent(llmModel model.LLM) (agent.Agent, error) {
+	instruction, err := prompts.Get(PromptNamespace + "/maps_grounding_instruction")
+	if err != nil {
+		return nil, err
+	}
+	mapsGrounding := geminitool.New(
+		"google_maps_grounding",
+		"Answers location-based questions using Google Maps.",
+		&genai.Tool{GoogleMaps: &genai.GoogleMaps{}},
+	)
+	return llmagent.New(llmagent.Config{
+		Name:        "maps_grounding_agent",
+		Model:       llmModel,
+		Description: "Answers location-based questions, grounded in real Google Maps data.",
+		Instruction: instruction,
+		Tools:       []tool.Tool{mapsGrounding},
 	})
 }
 

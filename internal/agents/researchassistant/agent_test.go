@@ -69,6 +69,23 @@ func skipIfNoGemini(t *testing.T) llm.Config {
 	return cfg
 }
 
+// skipIfNoVertexAI skips unless one of Vertex AI's two real auth paths is
+// configured (an Express Mode API key, or Project+Location for Application
+// Default Credentials) — neither is a hard requirement to run this repo's
+// own suite, the same discipline skipIfNoGemini already follows for
+// GOOGLE_AI_STUDIO_API_KEY.
+func skipIfNoVertexAI(t *testing.T) llm.Config {
+	t.Helper()
+	hasAPIKey := testConfig.VertexAIAPIKey != ""
+	hasADC := testConfig.VertexAIProject != "" && testConfig.VertexAILocation != ""
+	if !hasAPIKey && !hasADC {
+		t.Skip("skipping: neither VERTEX_AI_API_KEY nor VERTEX_AI_PROJECT+VERTEX_AI_LOCATION are set")
+	}
+	cfg := testConfig
+	cfg.ModelType = llm.ModelTypeVertexAI
+	return cfg
+}
+
 func skipOnQuota(t *testing.T, err error) {
 	t.Helper()
 	if err != nil && strings.Contains(err.Error(), "RESOURCE_EXHAUSTED") {
@@ -85,7 +102,7 @@ func buildModel(t *testing.T, cfg llm.Config) model.LLM {
 	return llmModel
 }
 
-// TestBuildAgent_Constructs confirms all three builders succeed without
+// TestBuildAgent_Constructs confirms all four builders succeed without
 // error, independent of any live call. agent.Agent exposes no way to
 // inspect a built agent's actual tool composition from outside the
 // package, so this deliberately claims only "constructs successfully" —
@@ -94,7 +111,8 @@ func buildModel(t *testing.T, cfg llm.Config) model.LLM {
 // TestResearchAgent_SearchesTheWeb_Gemini proves the search agent grounds
 // but never calls a custom tool; TestFormatterAgent_NeverUsesSearch_Gemini
 // proves the reverse; TestCombinedAgent_UsesSearchAndCustomTool_Gemini
-// proves the combined agent does both).
+// proves the combined agent does both; TestMapsGroundingAgent_AnswersLocationQuestion_VertexAI
+// proves the fourth agent's tool call against the Vertex AI backend).
 func TestBuildAgent_Constructs(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -103,6 +121,7 @@ func TestBuildAgent_Constructs(t *testing.T) {
 		{"BuildResearchAgent", BuildResearchAgent},
 		{"BuildFormatterAgent", BuildFormatterAgent},
 		{"BuildCombinedAgent", BuildCombinedAgent},
+		{"BuildMapsGroundingAgent", BuildMapsGroundingAgent},
 	}
 
 	cfg := testConfig
@@ -247,5 +266,32 @@ func TestMixedTools_WithoutServerSideFlag_Fails_Gemini(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "include_server_side_tool_invocations") {
 		t.Errorf("err = %v, want it to name include_server_side_tool_invocations as the fix, per the confirmed live error text", err)
+	}
+}
+
+// TestMapsGroundingAgent_AnswersLocationQuestion_VertexAI is the live proof
+// this module previously documented as a real construction it couldn't
+// build or test — google_maps_grounding genuinely works against the Vertex
+// AI backend, grounding a real location question in real Google Maps data.
+func TestMapsGroundingAgent_AnswersLocationQuestion_VertexAI(t *testing.T) {
+	cfg := skipIfNoVertexAI(t)
+	llmModel := buildModel(t, cfg)
+
+	a, err := BuildMapsGroundingAgent(llmModel)
+	if err != nil {
+		t.Fatalf("BuildMapsGroundingAgent() error = %v", err)
+	}
+
+	answer, _, sawGrounding, err := askAgent(t.Context(), a, "maps_grounding_agent_test_app",
+		"What is the Eiffel Tower's street address in Paris?", "")
+	skipOnQuota(t, err)
+	if err != nil {
+		t.Fatalf("askAgent() error = %v", err)
+	}
+	if answer == "" {
+		t.Fatal("maps grounding agent returned no answer")
+	}
+	if !sawGrounding {
+		t.Error("no GroundingMetadata observed — google_maps_grounding was not genuinely used")
 	}
 }

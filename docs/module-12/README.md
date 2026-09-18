@@ -66,9 +66,9 @@ report, err := runAgent(ctx, formatterAgent, "formatter_app", "Topic: "+topic+"\
 
 Two `runner.Run` calls, one per agent, in your own code — the same programmatic-execution shape module-6 and module-10 already used for other reasons.
 
-### `google_maps_grounding`: A Real Construction, Not a Built Lab
+### `google_maps_grounding`: Built and Tested Against Real Vertex AI
 
-Gemini also has a location-grounding built-in tool, `google_maps_grounding`, for questions like "what's near me" or "how do I get there." `geminitool` doesn't ship it as its own named type the way it does `GoogleSearch`, but its own package doc comment tells you exactly how to add any Gemini-native tool: `geminitool.New(name, description, &genai.Tool{...})`. `genai.GoogleMaps` is a real, present type, so this genuinely compiles:
+Gemini also has a location-grounding built-in tool, `google_maps_grounding`, for questions like "what's near me" or "how do I get there." `geminitool` doesn't ship it as its own named type the way it does `GoogleSearch`, but its own package doc comment tells you exactly how to add any Gemini-native tool: `geminitool.New(name, description, &genai.Tool{...})`. `genai.GoogleMaps` is a real, present type, so this genuinely compiles and runs:
 
 ```go
 mapsGrounding := geminitool.New(
@@ -78,14 +78,17 @@ mapsGrounding := geminitool.New(
 )
 ```
 
-This module doesn't build or test it though, matching this course's own scope here — `google_maps_grounding` needs the Vertex AI API, and this repo's setup only ever configures a plain AI Studio key.
+`genai.GoogleMaps`'s own doc comment is explicit that this isn't supported by the public Gemini API — it needs Vertex AI specifically, `genai.BackendVertexAI`. `internal/agents/researchassistant.BuildMapsGroundingAgent` builds it for real, and `TestMapsGroundingAgent_AnswersLocationQuestion_VertexAI` proves it live: a real question about the Eiffel Tower's street address comes back with the real address, grounded in real `GroundingMetadata` from Google Maps — not the model's own training data.
+
+Two real, mutually exclusive Vertex AI auth paths exist: **Express Mode** (`VertexAIAPIKey`, API-key-only, no GCP project/location needed) and **Application Default Credentials** (`VertexAIProject` + `VertexAILocation`, the same mechanism every other Google Cloud SDK uses). ADC is what actually worked in this session — Express Mode has a real enrollment requirement most existing Google Cloud accounts can't meet; see [troubleshooting.md](./troubleshooting.md) for the exact error and both fixes. Vertex AI's model catalog also uses different identifiers than the public Gemini API (`VertexAIModel` is its own config field for exactly this reason) — same file has that gotcha's exact error too.
 
 ### Key Takeaways ✅
 - A built-in tool like `google_search` runs inside the model's own environment — no local code execution, added with one line: `Tools: []tool.Tool{geminitool.GoogleSearch{}}`.
 - The Gemini API rejects mixing a built-in tool with custom function tools by default — confirmed live with the real `400 INVALID_ARGUMENT` error.
 - Setting `genai.ToolConfig.IncludeServerSideToolInvocations` on `llmagent.Config.GenerateContentConfig` lifts that restriction, letting one agent genuinely use both kinds of tool together — confirmed live with real grounding metadata and a real custom tool call in the same conversation.
 - Sequential composition — a search-only agent's output feeding a custom-tools-only agent, via two separate `runner.Run` calls — stays a legitimate, simpler-scoped alternative even now that the combined approach works.
-- `google_maps_grounding` is real (`geminitool.New` + `genai.GoogleMaps`) but needs Vertex AI, outside this course's scope.
+- `google_maps_grounding` is real (`geminitool.New` + `genai.GoogleMaps`), needs Vertex AI specifically, and is built and proven live against a real Google Cloud project via Application Default Credentials — Express Mode's API-key-only path is simpler when available, but confirmed live to reject an ordinary Google Cloud API key.
+- Vertex AI's own model catalog uses different model identifiers than the public Gemini API — confirmed live, `gemini-3.5-flash` 404s on Vertex while `gemini-2.5-flash` works.
 - There's no `ManagedAgent` type anywhere in the pinned `google.golang.org/adk/v2 v2.4.0` source — a confirmed scoping gap in this SDK version, not a pattern to build against yet.
 
 <hr/>

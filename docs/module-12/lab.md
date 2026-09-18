@@ -89,19 +89,42 @@ Notice: the research agent's findings reflect real, current events beyond any tr
 
 `BuildCombinedAgent` in the same package shows the alternative this module's README covers: instead of two agents, one agent with `IncludeServerSideToolInvocations` set can use `google_search` and your custom tools together. Read `TestCombinedAgent_UsesSearchAndCustomTool_Gemini` in `agent_test.go` to see how that's proven — it checks for real `GroundingMetadata` *and* a real `FunctionResponse` from `format_research_notes` in the same conversation.
 
+### Step 4 (Bonus): Google Maps Grounding, for Real 🗺️
+
+Unlike `google_search`, `google_maps_grounding` needs Vertex AI, not the public Gemini API — this step is optional and needs one of two things in your `.env`:
+
+- `VERTEX_AI_API_KEY` — an API key generated through Vertex AI Studio's own **Express Mode** enrollment (`console.cloud.google.com/vertex-ai/generative/express`). A plain Google Cloud API key does not work here — see [troubleshooting.md](./troubleshooting.md) if you hit that.
+- `VERTEX_AI_PROJECT` + `VERTEX_AI_LOCATION` — Application Default Credentials, the path every other Google Cloud SDK uses. Install the `gcloud` CLI, run `gcloud auth application-default login`, then set these two to your project ID and a Vertex AI region (e.g. `us-east1`).
+
+`internal/agents/researchassistant.BuildMapsGroundingAgent` wires `geminitool.New("google_maps_grounding", ..., &genai.Tool{GoogleMaps: &genai.GoogleMaps{}})` into an agent built against the `vertexai` model type. `cmd/research-assistant/main.go` runs it automatically as a bonus section whenever either auth path is configured — nothing extra to run, just re-run the same command from Step 2 once your `.env` has one of the two set:
+
+```bash
+go run ./cmd/research-assistant "the latest AI developments from Google"
+```
+
+Real, confirmed output from this exact command's bonus section (via Application Default Credentials — the path that actually worked in this session, against a pre-existing Google Cloud account that couldn't get an Express key):
+
+```
+--- BONUS: GOOGLE MAPS GROUNDING (Vertex AI) ---
+The street address for the Eiffel Tower in Paris is Av. Gustave Eiffel, 75007 Paris, France.
+```
+
+That's the real address, grounded in real `GroundingMetadata` from Google Maps — `TestMapsGroundingAgent_AnswersLocationQuestion_VertexAI` in `internal/agents/researchassistant/agent_test.go` proves this structurally, checking for real grounding metadata, not just a non-empty answer.
+
 ### Troubleshooting
 
 Hit a snag? See [troubleshooting.md](./troubleshooting.md).
 
 ### Lab Summary 🎉
 
-You built a two-agent research pipeline using the ADK's built-in `google_search` tool, learned exactly why the Gemini API rejects mixing it with custom tools by default, and saw both ways around that: splitting into two agents, or setting one flag to combine them in one. Solid work!
+You built a two-agent research pipeline using the ADK's built-in `google_search` tool, learned exactly why the Gemini API rejects mixing it with custom tools by default, and saw both ways around that: splitting into two agents, or setting one flag to combine them in one. If you had Vertex AI access, you also built and proved `google_maps_grounding` for real — and hit the same kind of real, confirmed auth gotcha (Express Mode's own enrollment requirement) that this whole module has been full of. Solid work!
 
 ### Self-Reflection Questions 🤔
 - Why does `google_search` running "inside the model" make it a fundamentally different kind of tool than `extract_key_facts`, which runs in your own Go process?
 - `TestMixedTools_WithoutServerSideFlag_Fails_Gemini` deliberately builds an invalid agent to prove the restriction is real. Why's a test that expects failure just as valuable as one that expects success?
 - Now that you know `IncludeServerSideToolInvocations` exists, when would you still pick sequential composition (two agents) over the combined single-agent approach?
+- `VertexAIModel` is a separate config field from `GeminiModel`, even though both ultimately select a Gemini model. Why wasn't reusing `GeminiModel` for Vertex AI a safe assumption?
 
 <hr/>
 
-> **Coming from Python?** 🐍 Python's lab only builds the sequential-composition version — `formatter_agent` is left as a `TODO` for you to complete, then `main.py`'s `run_agent` helper does the same two-call orchestration `runAgent` does here. This Go lab throws in Step 3 as bonus content with no Python equivalent in this course.
+> **Coming from Python?** 🐍 Python's lab only builds the sequential-composition version — `formatter_agent` is left as a `TODO` for you to complete, then `main.py`'s `run_agent` helper does the same two-call orchestration `runAgent` does here. This Go lab throws in Steps 3 and 4 as bonus content with no Python equivalent in this course.

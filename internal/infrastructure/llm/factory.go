@@ -17,8 +17,9 @@ import (
 // backends register their own factory in modelFactories instead of adding a
 // branch to BuildModel.
 const (
-	ModelTypeOllama = "ollama"
-	ModelTypeGemini = "gemini"
+	ModelTypeOllama   = "ollama"
+	ModelTypeGemini   = "gemini"
+	ModelTypeVertexAI = "vertexai"
 )
 
 var (
@@ -35,8 +36,9 @@ var (
 type modelFactory func(ctx context.Context, cfg Config) (model.LLM, string, error)
 
 var modelFactories = map[string]modelFactory{
-	ModelTypeOllama: newOllamaModel,
-	ModelTypeGemini: newGeminiModel,
+	ModelTypeOllama:   newOllamaModel,
+	ModelTypeGemini:   newGeminiModel,
+	ModelTypeVertexAI: newVertexAIModel,
 }
 
 // BuildModel dispatches to the factory registered for cfg.ModelType.
@@ -94,4 +96,42 @@ func geminiClientConfig(cfg Config) *genai.ClientConfig {
 			RetryOptions: productionRetryOptions(),
 		},
 	}
+}
+
+// newVertexAIModel builds the Vertex AI backend, required for module-12's
+// google_maps_grounding built-in tool, which the public Gemini API doesn't
+// offer. Two real auth paths, tried in order — see vertexAIClientConfig.
+func newVertexAIModel(ctx context.Context, cfg Config) (model.LLM, string, error) {
+	m, err := gemini.NewModel(ctx, cfg.VertexAIModel, vertexAIClientConfig(cfg))
+	return m, cfg.VertexAIModel, err
+}
+
+// vertexAIClientConfig builds the client configuration for the Vertex AI
+// backend, including the production retry policy — split out from
+// newVertexAIModel so it's testable without a live network call, mirroring
+// geminiClientConfig.
+//
+// Two real, mutually exclusive auth paths: VertexAIAPIKey (Express Mode —
+// API-key-only, confirmed live to work ONLY for a key generated through
+// Vertex AI Studio's own Express enrollment flow, not a plain Google Cloud
+// API key) takes precedence when set; otherwise VertexAIProject +
+// VertexAILocation are passed through with no explicit Credentials, letting
+// genai.NewClient resolve Application Default Credentials itself (gcloud
+// auth application-default login, or a service account) — confirmed live
+// against a real GCP project with ADC set up via gcloud, the path most
+// existing Google Cloud accounts actually need.
+func vertexAIClientConfig(cfg Config) *genai.ClientConfig {
+	cc := &genai.ClientConfig{
+		Backend: genai.BackendVertexAI,
+		HTTPOptions: genai.HTTPOptions{
+			RetryOptions: productionRetryOptions(),
+		},
+	}
+	if cfg.VertexAIAPIKey != "" {
+		cc.APIKey = cfg.VertexAIAPIKey
+		return cc
+	}
+	cc.Project = cfg.VertexAIProject
+	cc.Location = cfg.VertexAILocation
+	return cc
 }
