@@ -26,6 +26,10 @@ cmd/           → runnable launcher programs, one per module's lab exercise —
 
 Every module's docs live at `docs/module-N/`: `README.md` (Theory), `lab.md` (the hands-on exercise), and `troubleshooting.md` where a module has real, confirmed gotchas worth documenting separately. Every doc file also has a native Spanish translation (`.es.md`) alongside it.
 
+**Documentation conventions:**
+- Every live interaction with an agent — any question, command, or console turn typed to it while building or capturing a "real, confirmed output" transcript — is conducted in English, regardless of which doc (English or `.es.md`) the transcript ends up in. A captured console-output block stays in English verbatim in both language twins; only the surrounding prose is translated for `.es.md`. The one exception is a module whose lesson is itself a foreign-language capability by design (e.g. module-15's "Spanish greeter" specialist), where the foreign-language example is the actual lesson content, not a stray leak.
+- This README's own Course Outline table (below) and its "Current coverage" line are updated as part of shipping every module — never left to fall behind.
+
 ## 🚀 Getting Started
 
 Requires **Go 1.27+**. See [`docs/module-02/README.md`](docs/module-02/README.md) for the full environment setup walkthrough (installing Go, Ollama for a local model, or configuring Gemini).

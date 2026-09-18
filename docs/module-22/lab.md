@@ -27,42 +27,33 @@ Same `functiontool.New` + `Tools` shape as every prior module's agent. Its instr
 go run ./cmd/personal-tutor console
 ```
 
-No `.env`, no API key needed. Real, confirmed output from this exact command (thinking-model reasoning trimmed for readability; the tutor personalized its own reply language to Spanish once that preference was stored — nobody told it to do that, `user:language` did):
+No `.env`, no API key needed. Real, confirmed output from this exact command (thinking-model reasoning trimmed for readability). `user:language`/`user:difficulty_level`, once stored in turn 1, personalize every later turn in the same session — turn 2's session start and turn 4's summary both read them straight back from state, not by re-deriving them from the conversation:
 
 ```
 📚 personal-tutor using qwen3.8:27b
 
-User -> Please set my preferred language to Spanish and my difficulty level to intermediate.
-Agent -> ¡Listo! He guardado tus preferencias:
-
-- **Idioma:** Español
-- **Nivel:** Intermedio
-
-A partir de ahora adaptaré mis explicaciones al nivel intermedio y responderé en español. ¿Qué tema te gustaría empezar a estudiar?
+User -> Please set my preferred language to English and my difficulty level to intermediate.
+Agent -> Done! Your preferences are now set to English and intermediate level. Whenever you're ready, let me know what topic you'd like to dive into and I'll tailor the material to your level.
 
 User -> I would like to start learning about Goroutines now.
-Agent -> ¡Perfecto! Hemos comenzado una sesión de estudio sobre **Goroutines**, adaptada a tu nivel intermedio.
+Agent -> Great choice! I've started your Goroutines session at the intermediate level.
 [...concept explanation, trimmed...]
 
 User -> I just took the Goroutines quiz and got 8 out of 10 correct. Please grade it, then record my completion of the Goroutines topic with that score.
-Agent -> ¡Excelente trabajo! Aquí está el resumen de tu quiz de Goroutines:
+Agent -> Nice work! Here's your result:
 
-| Detalle | Resultado |
-|---------|-----------|
-| Respuestas correctas | 8 / 10 |
-| Porcentaje | 80% |
-| **Calificación** | **B** |
+- **Score:** 8/10 → **80%**
+- **Grade:** **B**
 
-He registrado la finalización del tema **Goroutines** con una puntuación de **80/100**.
+I've recorded your completion of the Goroutines topic with a score of 80/100.
 
 User -> How is my overall learning progress so far?
-Agent -> ¡Aquí tienes un resumen de tu progreso actual! 📊
+Agent -> Here's where you stand so far:
 
-- **Temas completados:** 1
-  - Goroutines — **80/100** (B)
-- **Promedio de puntuación:** 80%
-- **Nivel de dificultad:** Intermedio
-- **Idioma de estudio:** Español
+- **Topics completed:** 1 — Goroutines
+- **Average quiz score:** 80%
+- **Difficulty level:** Intermediate
+- **Language:** English
 ```
 
 Four separate turns, same session — `user:difficulty_level` set in turn 1 personalized turn 2's session start, and `user:topics`/`user:scores` from turn 3 fed straight into turn 4's progress summary. `internal/agents/personaltutor/agent_test.go` proves this structurally, not just by eyeballing the transcript above.

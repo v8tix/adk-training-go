@@ -27,42 +27,33 @@ Misma forma con `functiontool.New` + `Tools` que el agente de todo módulo anter
 go run ./cmd/personal-tutor console
 ```
 
-Sin `.env`, sin API key. Salida real y confirmada de este comando exacto (razonamiento del modelo de pensamiento recortado para legibilidad; el tutor personalizó su propia respuesta al español una vez que se guardó esa preferencia — nadie le dijo que hiciera eso, lo hizo `user:language`):
+Sin `.env`, sin API key. Salida real y confirmada de este comando exacto (razonamiento del modelo de pensamiento recortado para legibilidad). `user:language`/`user:difficulty_level`, guardados en el turno 1, personalizan cada turno posterior de la misma sesión — el inicio de sesión del turno 2 y el resumen del turno 4 los leen directamente del estado, sin volver a derivarlos de la conversación:
 
 ```
 📚 personal-tutor using qwen3.8:27b
 
-User -> Please set my preferred language to Spanish and my difficulty level to intermediate.
-Agent -> ¡Listo! He guardado tus preferencias:
-
-- **Idioma:** Español
-- **Nivel:** Intermedio
-
-A partir de ahora adaptaré mis explicaciones al nivel intermedio y responderé en español. ¿Qué tema te gustaría empezar a estudiar?
+User -> Please set my preferred language to English and my difficulty level to intermediate.
+Agent -> Done! Your preferences are now set to English and intermediate level. Whenever you're ready, let me know what topic you'd like to dive into and I'll tailor the material to your level.
 
 User -> I would like to start learning about Goroutines now.
-Agent -> ¡Perfecto! Hemos comenzado una sesión de estudio sobre **Goroutines**, adaptada a tu nivel intermedio.
-[...explicación del concepto, recortada...]
+Agent -> Great choice! I've started your Goroutines session at the intermediate level.
+[...concept explanation, trimmed...]
 
 User -> I just took the Goroutines quiz and got 8 out of 10 correct. Please grade it, then record my completion of the Goroutines topic with that score.
-Agent -> ¡Excelente trabajo! Aquí está el resumen de tu quiz de Goroutines:
+Agent -> Nice work! Here's your result:
 
-| Detalle | Resultado |
-|---------|-----------|
-| Respuestas correctas | 8 / 10 |
-| Porcentaje | 80% |
-| **Calificación** | **B** |
+- **Score:** 8/10 → **80%**
+- **Grade:** **B**
 
-He registrado la finalización del tema **Goroutines** con una puntuación de **80/100**.
+I've recorded your completion of the Goroutines topic with a score of 80/100.
 
 User -> How is my overall learning progress so far?
-Agent -> ¡Aquí tienes un resumen de tu progreso actual! 📊
+Agent -> Here's where you stand so far:
 
-- **Temas completados:** 1
-  - Goroutines — **80/100** (B)
-- **Promedio de puntuación:** 80%
-- **Nivel de dificultad:** Intermedio
-- **Idioma de estudio:** Español
+- **Topics completed:** 1 — Goroutines
+- **Average quiz score:** 80%
+- **Difficulty level:** Intermediate
+- **Language:** English
 ```
 
 Cuatro turnos separados, misma sesión — `user:difficulty_level`, establecido en el turno 1, personalizó el inicio de sesión del turno 2, y `user:topics`/`user:scores` del turno 3 alimentaron directamente el resumen de progreso del turno 4. `internal/agents/personaltutor/agent_test.go` prueba esto de forma estructural, no solo mirando la transcripción de arriba.
