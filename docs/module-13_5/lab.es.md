@@ -8,6 +8,8 @@ Construye un `session.Service` personalizado respaldado por Redis, inyéctalo en
 
 Un Redis accesible (por defecto `localhost:6379`, sobreescribible con `REDIS_ADDR`) y Docker (para las pruebas de integración, que usan Testcontainers). No hace falta cuenta cloud — qué alivio. 👍
 
+La forma más rápida de conseguir un Redis accesible: `./scripts/up.sh` desde la raíz del repositorio, que levanta el propio `docker-compose.yml` de este repositorio en segundo plano. `./scripts/stop.sh` lo pausa, `./scripts/clean.sh` lo elimina por completo (junto con sus datos), `./scripts/logs.sh` sigue su salida.
+
 ### Paso 1: Los Tipos Concretos
 
 `internal/infrastructure/redissession/session.go` define `redisSession`, `redisState`, y `redisEvents` — vistas planas en memoria que satisfacen `session.Session`, `session.State`, y `session.Events`. No hay ningún tipo concreto exportado en el SDK para embeber acá — cada `session.Service` personalizado construye el suyo desde cero.

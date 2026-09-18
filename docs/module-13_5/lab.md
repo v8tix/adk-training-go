@@ -8,6 +8,8 @@ Build a custom `session.Service` backed by Redis, inject it into a real `runner.
 
 A reachable Redis (default `localhost:6379`, override with `REDIS_ADDR`) and Docker (for the integration tests, which use Testcontainers). No cloud account needed — nice. 👍
 
+The quickest way to get a reachable Redis: `./scripts/up.sh` from the repo root, which starts this repo's own `docker-compose.yml` in the background. `./scripts/stop.sh` pauses it, `./scripts/clean.sh` removes it (and its data) entirely, `./scripts/logs.sh` tails its output.
+
 ### Step 1: The Concrete Types
 
 `internal/infrastructure/redissession/session.go` defines `redisSession`, `redisState`, and `redisEvents` — plain, in-memory views satisfying `session.Session`, `session.State`, and `session.Events`. There's no exported concrete type in the SDK to embed here; every custom `session.Service` builds its own from scratch.
