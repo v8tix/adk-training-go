@@ -2,6 +2,7 @@ package redissession
 
 import (
 	"iter"
+	"maps"
 	"sync"
 	"time"
 
@@ -64,19 +65,10 @@ func (s *redisState) Set(key string, val any) error {
 
 func (s *redisState) All() iter.Seq2[string, any] {
 	s.mu.RLock()
-	snapshot := make(map[string]any, len(s.state))
-	for k, v := range s.state {
-		snapshot[k] = v
-	}
+	snapshot := maps.Clone(s.state)
 	s.mu.RUnlock()
 
-	return func(yield func(string, any) bool) {
-		for k, v := range snapshot {
-			if !yield(k, v) {
-				return
-			}
-		}
-	}
+	return maps.All(snapshot)
 }
 
 // redisEvents implements session.Events: an ordered, mutex-protected

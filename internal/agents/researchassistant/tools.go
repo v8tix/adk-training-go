@@ -35,7 +35,7 @@ func extractKeyFacts(_ agent.Context, args ExtractKeyFactsArgs) (ExtractKeyFacts
 	}
 
 	facts := make([]string, 0, numFacts)
-	for _, sentence := range strings.Split(args.Text, ".") {
+	for sentence := range strings.SplitSeq(args.Text, ".") {
 		trimmed := strings.TrimSpace(sentence)
 		if len(trimmed) > minFactLength {
 			facts = append(facts, trimmed)

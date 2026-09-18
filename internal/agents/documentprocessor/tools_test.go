@@ -183,7 +183,7 @@ func TestSummarizeDocument_PropagatesRealLoadError(t *testing.T) {
 
 func TestSummarizeDocument_PropagatesSaveError(t *testing.T) {
 	fa := &fakeArtifacts{}
-	if _, err := fa.Save(context.Background(), extractedArtifactName("Report"), genai.NewPartFromText("extracted")); err != nil {
+	if _, err := fa.Save(t.Context(), extractedArtifactName("Report"), genai.NewPartFromText("extracted")); err != nil {
 		t.Fatalf("seeding extracted artifact error = %v", err)
 	}
 	wantErr := errors.New("boom")
@@ -206,7 +206,7 @@ func TestGenerateChart_SavesWithImageMimeType(t *testing.T) {
 		t.Errorf("Version = %d, want 1", got.Version)
 	}
 
-	loadResp, err := ctx.artifacts.Load(context.Background(), chartArtifactName("Report"))
+	loadResp, err := ctx.artifacts.Load(t.Context(), chartArtifactName("Report"))
 	if err != nil {
 		t.Fatalf("Load(chart) error = %v", err)
 	}
@@ -251,7 +251,7 @@ func TestCreateReport_DistinguishesTextAndImage_AndOnlyOwnDocument(t *testing.T)
 		t.Errorf("Status = %q, want %q", got.Status, "success")
 	}
 
-	loadResp, err := ctx.artifacts.Load(context.Background(), reportArtifactName("Alpha"))
+	loadResp, err := ctx.artifacts.Load(t.Context(), reportArtifactName("Alpha"))
 	if err != nil {
 		t.Fatalf("Load(report) error = %v", err)
 	}
@@ -285,7 +285,7 @@ func TestCreateReport_ExcludesItsOwnPriorVersion(t *testing.T) {
 		t.Errorf("Version = %d, want 2", got.Version)
 	}
 
-	loadResp, err := ctx.artifacts.Load(context.Background(), reportArtifactName("Alpha"))
+	loadResp, err := ctx.artifacts.Load(t.Context(), reportArtifactName("Alpha"))
 	if err != nil {
 		t.Fatalf("Load(report) error = %v", err)
 	}
@@ -306,7 +306,7 @@ func TestCreateReport_PropagatesListError(t *testing.T) {
 
 func TestCreateReport_PropagatesSaveError(t *testing.T) {
 	fa := &fakeArtifacts{}
-	if _, err := fa.Save(context.Background(), extractedArtifactName("Alpha"), genai.NewPartFromText("extracted")); err != nil {
+	if _, err := fa.Save(t.Context(), extractedArtifactName("Alpha"), genai.NewPartFromText("extracted")); err != nil {
 		t.Fatalf("seeding extracted artifact error = %v", err)
 	}
 	wantErr := errors.New("boom")

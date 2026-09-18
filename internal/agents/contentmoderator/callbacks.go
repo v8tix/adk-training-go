@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"strings"
 	"sync"
@@ -251,10 +252,7 @@ func afterToolCallback(_ agent.Context, t tool.Tool, _ map[string]any, result ma
 	}
 
 	fmt.Println("⚠️  [AUDIT] Redacted a blocked word from generate_text's own output")
-	redacted := make(map[string]any, len(result))
-	for k, v := range result {
-		redacted[k] = v
-	}
+	redacted := maps.Clone(result)
 	redacted["text"] = blockedWordPattern.ReplaceAllString(text, "***")
 	return redacted, nil
 }

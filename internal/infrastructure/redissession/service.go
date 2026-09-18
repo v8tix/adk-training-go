@@ -108,14 +108,13 @@ func extractStateDeltas(delta map[string]any) (appDelta, userDelta, sessionDelta
 	userDelta = make(map[string]any)
 	sessionDelta = make(map[string]any)
 	for key, value := range delta {
-		switch {
-		case strings.HasPrefix(key, session.KeyPrefixApp):
-			appDelta[strings.TrimPrefix(key, session.KeyPrefixApp)] = value
-		case strings.HasPrefix(key, session.KeyPrefixUser):
-			userDelta[strings.TrimPrefix(key, session.KeyPrefixUser)] = value
-		case strings.HasPrefix(key, session.KeyPrefixTemp):
+		if rest, ok := strings.CutPrefix(key, session.KeyPrefixApp); ok {
+			appDelta[rest] = value
+		} else if rest, ok := strings.CutPrefix(key, session.KeyPrefixUser); ok {
+			userDelta[rest] = value
+		} else if strings.HasPrefix(key, session.KeyPrefixTemp) {
 			// dropped
-		default:
+		} else {
 			sessionDelta[key] = value
 		}
 	}
@@ -455,12 +454,10 @@ func trimTempDeltaState(event *session.Event) *session.Event {
 		return event
 	}
 
-	filtered := make(map[string]any, len(event.Actions.StateDelta))
-	for k, v := range event.Actions.StateDelta {
-		if !strings.HasPrefix(k, session.KeyPrefixTemp) {
-			filtered[k] = v
-		}
-	}
+	filtered := maps.Clone(event.Actions.StateDelta)
+	maps.DeleteFunc(filtered, func(k string, _ any) bool {
+		return strings.HasPrefix(k, session.KeyPrefixTemp)
+	})
 	if len(filtered) == len(event.Actions.StateDelta) {
 		return event
 	}

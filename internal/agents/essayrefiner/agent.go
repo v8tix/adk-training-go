@@ -123,7 +123,7 @@ func BuildRootAgent(llmModel model.LLM) (agent.Agent, error) {
 				return "", err
 			}
 
-			for i := 0; i < maxIterations; i++ {
+			for range maxIterations {
 				feedback, err := workflow.RunNode[string](ctx, criticNode, currentStory)
 				if err != nil {
 					return "", err
