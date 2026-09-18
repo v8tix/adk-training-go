@@ -47,6 +47,21 @@ go run ./cmd/echo-agent console
 
 Full details for each lab — including exact commands, expected output, and troubleshooting — live in that module's own `docs/module-N/lab.md`.
 
+### 🧰 Tooling
+
+Every lab from module 1 onward only needs Go and (optionally) Ollama. A few later modules exercise something genuinely external — each one degrades gracefully (a skipped, not failed, test) if the tool below isn't installed, but you'll need it to actually run that module's own live example:
+
+| Tool | Needed for | Install |
+|---|---|---|
+| **Go 1.27+** | Every module | [go.dev/dl](https://go.dev/dl/) |
+| **Ollama** | The default local model every module uses unless you switch to a cloud backend | [ollama.com](https://ollama.com/) |
+| **Docker** | Module 13.5's Redis integration tests (Testcontainers) | [docker.com/get-started](https://www.docker.com/get-started/) |
+| **Node.js (includes `npx`)** | Module 27's filesystem MCP server (`@modelcontextprotocol/server-filesystem`), a third-party Node package | [nodejs.org](https://nodejs.org/) |
+| **Google Cloud CLI (`gcloud`)** | Module 12's `google_maps_grounding` bonus, via Vertex AI Application Default Credentials | `brew install --cask google-cloud-sdk` (macOS/Homebrew), or `curl https://sdk.cloud.google.com \| bash` — then `gcloud auth application-default login` |
+| **Google Chrome or Chromium** | Module 29's headless-browser UI test (`github.com/chromedp/chromedp` drives an existing install — it doesn't download its own browser) | [google.com/chrome](https://www.google.com/chrome/) or your package manager's `chromium` |
+
+This table grows as later modules add their own real, external tool. If a module can't run without something beyond Go/Ollama, it's listed here.
+
 ## 📚 Course Outline
 
 | # | Module | Docs |

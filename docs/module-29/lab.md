@@ -6,7 +6,7 @@ Build a standalone HTML/JavaScript chat client, backed by this repo's own REST A
 
 ### Prerequisites
 
-None beyond what every prior module needed — this lab runs entirely on the local Ollama default, no cloud credentials required.
+This lab itself runs entirely on the local Ollama default, no cloud credentials required. Its committed browser test (Step 6) needs Google Chrome or Chromium installed — see the top-level [README's Tooling section](../../README.md#-tooling) — and skips cleanly if it isn't found.
 
 ## Lab Tasks
 
@@ -26,7 +26,7 @@ go run ./cmd/ui-agent web --port=9093 api -webui_address http://localhost:9094
 
 ### 3. Read `cmd/ui-agent/main_test.go`
 
-Builds `adkrest.NewServer` directly (no launcher, no CLI) wrapped in `httptest.NewServer` — a real, in-process HTTP server. `TestRunSSE_StreamsBothThoughtAndFinalParts` drives the exact same session-create + `/run_sse` flow the browser client will, and proves the module's own central risk is real, not hypothetical: the live SSE stream genuinely contains a `"thought":true` part *and* a real final answer, in the same response. This is the module's server-side regression proof; the client's own JavaScript filtering logic is verified live in a real browser instead (Step 5) — this repo has no JavaScript test runner to unit-test it with directly.
+Builds `adkrest.NewServer` directly (no launcher, no CLI) wrapped in `httptest.NewServer` — a real, in-process HTTP server. `TestRunSSE_StreamsBothThoughtAndFinalParts` drives the exact same session-create + `/run_sse` flow the browser client will, and proves the module's own central risk is real, not hypothetical: the live SSE stream genuinely contains a `"thought":true` part *and* a real final answer, in the same response. This is the module's server-side regression proof; the client's own JavaScript filtering logic is verified live in a real browser instead (Step 6's committed test) — this repo has no JavaScript test runner to unit-test it with directly.
 
 ### 4. Read `cmd/ui-client-server/static/index.html`
 
@@ -49,21 +49,27 @@ go run ./cmd/ui-client-server
 
 Then open `http://localhost:9094` in a browser and send a message.
 
-**Real, confirmed verification from this exact setup** — driven with `chromedp` (a real headless-Chrome Go driver, `github.com/chromedp/chromedp`), not just a manual click-through: navigated to the page, typed "Say hello in exactly three words.", submitted the form, and polled the DOM until the assistant's message div held real text.
+### 6. Read `cmd/ui-agent/browser_test.go`
+
+The full-stack check from Step 5, permanently committed instead of a one-off script: `TestChatUI_RendersStreamedAnswerWithoutLeakingThought_Ollama` builds the real `cmd/ui-agent` binary, launches it through its own real CLI (`web --port=9093 api -webui_address ...` — the only test in this module that exercises the launcher's actual `/api` mounting and CORS wiring, not a bypassed direct `adkrest.NewServer` construction), serves the real `static/index.html` in-process, and drives a real headless Chrome (`github.com/chromedp/chromedp`) against it — typing a message, submitting, and reading the rendered DOM back. It skips cleanly (not fails) if Chrome/Chromium isn't installed, or if port 9093 is already taken by something else.
+
+```bash
+go test ./cmd/ui-agent/... -run TestChatUI -race -v
+```
+
+Real, confirmed output from this exact command:
 
 ```
-=== Rendered assistant message ===
-Hello to you
-===================================
-✅ No obvious reasoning-trace markers found in the rendered text — thought-filtering appears to work.
+=== RUN   TestChatUI_RendersStreamedAnswerWithoutLeakingThought_Ollama
+--- PASS: TestChatUI_RendersStreamedAnswerWithoutLeakingThought_Ollama (8.60s)
 ```
 
-The server's own `/run_sse` response for that exact turn genuinely contained a `thought: true` part (see Step 3's test) — the rendered page correctly shows only the real three-word answer, proving the client's filtering logic actually works end-to-end, not just in isolation.
+The server's own `/run_sse` response for that turn genuinely contained a `thought: true` part (see Step 3's own test) — the rendered page correctly shows only the real final answer, proving the client's filtering logic actually works end-to-end, in a real browser, on every test run — not just once, by hand, during Build.
 
 ### Checkpoint
 
-- [ ] `go test ./cmd/ui-agent/... -race` passes
-- [ ] A real browser (or a headless-Chrome check) shows only the final answer — no leaked reasoning text — after sending a message
+- [ ] `go test ./cmd/ui-agent/... -race` passes (both the server-side and the full-stack browser test)
+- [ ] With Chrome/Chromium installed, `TestChatUI_RendersStreamedAnswerWithoutLeakingThought_Ollama` actually runs (not skips) and passes
 
 ## Self-Reflection Questions 🤔
 - Server-Sent Events stream text to the client as it's generated. What would a traditional (non-streaming) request-response chat endpoint feel like to a user, compared to this?
