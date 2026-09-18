@@ -87,6 +87,8 @@ Your favorite color is **blue**! 💙
 
 The second process never shared memory with the first — only the same Redis. That right there is the proof. 🎉
 
+`persistent-agent set` also accepts an optional color, e.g. `go run ./cmd/persistent-agent set teal` — `ask` takes no arguments (the recall question is fixed by design). `cmd/persistent-agent/main.go`'s own `parseArgs` is what enforces this: a real, live-confirmed bug had the original CLI silently discard any argument beyond `set`/`ask` (so `persistent-agent set "My favorite color is teal."` would set "blue" anyway, with no error at all) — fixed to genuinely use a custom color when given one, and to reject an unexpected argument to `ask` with a clear error instead of ignoring it.
+
 ### Troubleshooting
 
 See [troubleshooting.md](./troubleshooting.md) if a step doesn't behave as expected.

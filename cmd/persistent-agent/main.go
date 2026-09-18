@@ -3,12 +3,13 @@
 // runner.Runner via runner.Config.SessionService — the direct equivalent of
 // Python's Runner(app=app, session_service=custom_service).
 //
-// Run `persistent-agent set` to store a favorite color, then stop the
-// process; run `persistent-agent ask` in a *separate* process invocation to
-// verify it survived. Each invocation builds its own fresh runner.Runner
-// and session.Service, connected to the same Redis — proving persistence
-// survives a process restart, matching Python's own "run once, stop, run
-// again" lab exercise (module13_5).
+// Run `persistent-agent set` (defaults to "blue"; pass a color to override,
+// e.g. `persistent-agent set teal`) to store a favorite color, then stop
+// the process; run `persistent-agent ask` (no arguments) in a *separate*
+// process invocation to verify it survived. Each invocation builds its own
+// fresh runner.Runner and session.Service, connected to the same Redis —
+// proving persistence survives a process restart, matching Python's own
+// "run once, stop, run again" lab exercise (module13_5).
 //
 // Requires a reachable Redis at REDIS_ADDR (default localhost:6379) — no
 // cloud credentials, unlike Python's lab, which requires a real GCP
@@ -20,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
@@ -96,24 +98,55 @@ func runTurn(ctx context.Context, redisAddr, message string) (string, error) {
 	return answer, nil
 }
 
+// usage is the exact error message any invalid invocation reports —
+// checked directly by TestParseArgs's own error-case assertions, so the
+// message and the behavior it describes can't silently drift apart.
+const usage = "usage: %s set [<color>]|ask"
+
+// parseArgs turns args (os.Args[1:]) into the message runTurn should send.
+// Split out from main so this repo's own established "extract anything
+// beyond pure wiring" rule applies here — this is genuinely testable logic
+// (argument validation and message construction), not just CLI plumbing.
+//
+// "set" defaults to "blue" (this module's own documented demo fact,
+// matching docs/module-13_5/lab.md's `persistent-agent set` invocation
+// exactly) but now genuinely accepts a custom color instead of silently
+// discarding one — confirmed live: passing a full sentence like "My
+// favorite color is teal." here previously vanished with no error at all,
+// since the original switch statement never looked at os.Args beyond
+// index 1. "ask" takes no arguments — the recall question is fixed by
+// design, so an unexpected extra argument is now a real error instead of
+// something silently ignored.
+func parseArgs(args []string) (message string, err error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf(usage, "persistent-agent")
+	}
+	switch args[0] {
+	case "set":
+		color := "blue"
+		if len(args) > 1 {
+			color = strings.Join(args[1:], " ")
+		}
+		return fmt.Sprintf("My favorite color is %s.", color), nil
+	case "ask":
+		if len(args) > 1 {
+			return "", fmt.Errorf("usage: %s ask (no arguments)", "persistent-agent")
+		}
+		return "What is my favorite color?", nil
+	default:
+		return "", fmt.Errorf(usage, "persistent-agent")
+	}
+}
+
 func main() {
 	ctx := context.Background()
 	if err := godotenv.Load(); err != nil {
 		fmt.Printf("ℹ️  No .env file loaded (%v) — continuing with the current environment.\n", err)
 	}
 
-	if len(os.Args) < 2 {
-		log.Fatalf("usage: %s set|ask", os.Args[0])
-	}
-
-	var message string
-	switch os.Args[1] {
-	case "set":
-		message = "My favorite color is blue."
-	case "ask":
-		message = "What is my favorite color?"
-	default:
-		log.Fatalf("usage: %s set|ask", os.Args[0])
+	message, err := parseArgs(os.Args[1:])
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	addr := redisAddr()
