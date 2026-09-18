@@ -62,3 +62,5 @@ temp/
 /observability-agent
 /pii-guardrail
 /content-moderator
+/mcp-filesystem
+/mcp-github
