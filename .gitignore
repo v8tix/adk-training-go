@@ -66,3 +66,5 @@ temp/
 /mcp-github
 /cart-mcp-server
 /shopping-agent
+/ui-agent
+/ui-client-server

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ADK Custom UI (Go)</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 10px; max-width: 80%; }
+        .user { background-color: #dcf8c6; align-self: flex-end; }
+        .assistant { background-color: #f1f0f0; align-self: flex-start; }
+        #input-form { display: flex; padding: 20px; border-top: 1px solid #ccc; }
+        input { flex: 1; padding: 10px; border-radius: 5px; }
+        button { padding: 10px 20px; margin-left: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="chat-container"></div>
+    <form id="input-form">
+        <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const inputForm = document.getElementById('input-form');
+        const messageInput = document.getElementById('message-input');
+
+        // cmd/ui-agent, launched via `web --port=9093 api ...`, mounts the
+        // REST API under /api by default (google.golang.org/adk/v2's own
+        // -path_prefix flag, confirmed in cmd/launcher/web/api/api.go) --
+        // Python's own adk api_server serves at the bare root instead, so
+        // every path below carries a leading /api that Python's lab client
+        // doesn't need.
+        const API_BASE = 'http://localhost:9093/api';
+
+        // This is a simple client-side session ID for the lab. In a real
+        // app, persist this in localStorage/a cookie instead -- generating
+        // a fresh one on every page load loses conversation history across
+        // reloads (see this module's own Self-Reflection Questions).
+        const appName = 'ui_agent';
+        const userId = 'student-user';
+        const sessionId = `session-${Date.now()}`;
+        let sessionReady = null;
+
+        // The /run_sse endpoint requires a session that already exists on
+        // the server -- it doesn't create one for you. This POSTs to the
+        // session-management endpoint once, before the first message.
+        //
+        // On failure, sessionReady is reset to null so the next submit
+        // retries instead of replaying the same stale rejection forever --
+        // e.g. if the agent server (cmd/ui-agent) wasn't up yet on the
+        // first send.
+        function ensureSession() {
+            if (!sessionReady) {
+                sessionReady = fetch(`${API_BASE}/apps/${appName}/users/${userId}/sessions/${sessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`session creation failed: HTTP ${response.status}`);
+                    }
+                    return response;
+                }).catch(error => {
+                    sessionReady = null;
+                    throw error;
+                });
+            }
+            return sessionReady;
+        }
+
+        inputForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = messageInput.value.trim();
+            if (!query) return;
+            addMessage(query, 'user');
+            messageInput.value = '';
+            const assistantMessageDiv = addMessage('...', 'assistant');
+            let renderedAnyText = false;
+
+            try {
+                await ensureSession();
+
+                // Body fields are camelCase here -- appName/userId/sessionId/
+                // newMessage -- confirmed against this SDK's own
+                // internal/models/runtime.go struct tags. Python's own lab
+                // uses snake_case (app_name/user_id/session_id/new_message)
+                // for the exact same request.
+                const response = await fetch(`${API_BASE}/run_sse`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appName: appName,
+                        userId: userId,
+                        sessionId: sessionId,
+                        newMessage: {
+                            role: 'user',
+                            parts: [{ text: query }]
+                        }
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    const lines = buffer.split('\n');
+                    // The last element may be a partial line split across
+                    // chunk boundaries -- keep it in the buffer for next time.
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        const event = JSON.parse(line.slice('data: '.length));
+                        if (!event.content || !event.content.parts) continue;
+
+                        for (const part of event.content.parts) {
+                            // This repo's own default Ollama model is
+                            // thinking-capable: confirmed live, the real SSE
+                            // stream includes a part with thought === true
+                            // carrying the model's own raw reasoning, ahead
+                            // of the real answer. Rendering it would leak
+                            // chain-of-thought straight into the chat UI --
+                            // skip it, the same "Parts[0] isn't the final
+                            // answer" lesson this course has carried since
+                            // its very first Go agent, applied here in
+                            // JavaScript instead of Go.
+                            if (part.thought) continue;
+                            if (part.text) {
+                                if (!renderedAnyText) {
+                                    assistantMessageDiv.textContent = '';
+                                    renderedAnyText = true;
+                                }
+                                assistantMessageDiv.textContent += part.text;
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                assistantMessageDiv.textContent = 'Error: Could not connect to the agent.';
+                console.error('Error:', error);
+            }
+        });
+
+        function addMessage(text, role) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageDiv;
+        }
+    </script>
+</body>
+</html>
